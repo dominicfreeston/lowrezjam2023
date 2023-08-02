@@ -11,7 +11,7 @@ CANVAS_H = 64
 # when position is 80 (96-16), camera should be 48 (64 - 16)
 CAMERA_RATIO_W = (CANVAS_W - 16) / (FLY_RANGE_W - 16)
 
-SHIP_BASE_SPEED = 4
+SHIP_BASE_SPEED = 1
 SHIP_SPEED_X = 1.5
 SHIP_SPEED_Y = 1
 HELP_SPEED = 0.5

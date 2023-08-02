@@ -11,20 +11,24 @@ module CodeGen
       
       path = "sprites/" + s
       key = s.gsub("-", "_").delete_suffix!(".png")
-      
+
+      ## Sprite sheet
       if $gtk.stat_file "sprites/#{key}.json"
-        
-        
+            
         frames = $gtk.parse_json_file("sprites/#{key}.json")["frames"]
         
         output += "  #{key}: [\n"
         frames.each do |f|
+          d = f["duration"]
+          d = (d.to_i / 1000 * 60).to_i
           f = f["frame"]
           x = f["x"]; y = f["y"]; w = f["w"]; h = f["h"]
-          output += "    {w: #{w}, h: #{h}, tile_x: #{x}, tile_y: #{y}, tile_w: #{w}, tiles_h: #{h}, path: \"#{path}\"}.sprite!,\n"
+          
+          output += "    {w: #{w}, h: #{h}, tile_x: #{x}, tile_y: #{y}, tile_w: #{w}, tiles_h: #{h}, path: \"#{path}\", duration: #{d}}.sprite!,\n"
         end
         output += "  ],\n"
-        
+
+      ## Single sprite
       else
         w, h = $gtk.calcspritebox path
         output += "  #{key}: {w: #{w}, h: #{h}, path: '#{path}'}.sprite!,\n"
