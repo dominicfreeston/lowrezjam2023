@@ -3,6 +3,7 @@
 # './dragonruby mygame --eval lib/generate_sprites_data.rb --no-tick'
 SPRITES = {
   background: {w: 64, h: 64, path: 'sprites/background.png'}.sprite!,
+  bullet_enemy_angle: {w: 5, h: 5, path: 'sprites/bullet-enemy-angle.png'}.sprite!,
   bullet_enemy_large: {w: 4, h: 5, path: 'sprites/bullet-enemy-large.png'}.sprite!,
   bullet_enemy_small: {w: 3, h: 5, path: 'sprites/bullet-enemy-small.png'}.sprite!,
   bullet_enemy_tiny: {w: 3, h: 3, path: 'sprites/bullet-enemy-tiny.png'}.sprite!,
@@ -11,7 +12,14 @@ SPRITES = {
     {w: 6, h: 6, tile_x: 0, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01.png", duration: 6}.sprite!,
     {w: 6, h: 6, tile_x: 7, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01.png", duration: 6}.sprite!,
   ],
+  enemy_copter_01: [
+    {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 24, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 36, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
+  ],
   enemy_diver_01: {w: 5, h: 5, path: 'sprites/enemy_diver_01.png'}.sprite!,
+  enemy_fighter_01: {w: 8, h: 8, path: 'sprites/enemy_fighter_01.png'}.sprite!,
   enemy_flying_01: [
     {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01.png", duration: 30}.sprite!,
     {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01.png", duration: 30}.sprite!,
@@ -37,5 +45,5 @@ SPRITES = {
   help1: {w: 8, h: 8, path: 'sprites/help1.png'}.sprite!,
   help2: {w: 8, h: 8, path: 'sprites/help2.png'}.sprite!,
   player: {w: 16, h: 16, path: 'sprites/player.png'}.sprite!,
-  star_background: {w: 192, h: 128, path: 'sprites/star-background.png'}.sprite!,
+  star_background: {w: 192, h: 256, path: 'sprites/star-background.png'}.sprite!,
 }

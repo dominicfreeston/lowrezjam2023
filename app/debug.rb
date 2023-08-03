@@ -49,6 +49,8 @@ def render_debug args
     "",
     "enemy count: #{my.grunts.length}",
     "aeb-count:   #{my.aeb.length}",
+    "",
+    "invincible:   #{@invincible ? "yes" : "no"}",
   ]
 
   args.outputs.debug << args.state

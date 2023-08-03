@@ -2,6 +2,7 @@ require 'lib/monkey_patch_gtk.rb'
 require 'lib/lowrez.rb'
 require 'app/sprites.rb'
 require 'app/constants.rb'
+require 'app/enemies.rb'
 require 'app/debug.rb'
 
 # Thoughts on sizes and coordinates
@@ -9,162 +10,11 @@ require 'app/debug.rb'
 # - even though there's also world coordiantes, do collisions based on screen coordinates? it should work out the same and arguably removes the risk of any inconsistencies?
 # - remember that sprite size might be different to entity size
 
-module Moves
-
-  def self.slide_wait_drop (dir, slide)
-    [
-      {dx: dir, ticks: slide},
-      {ticks: 120},
-      {dy: -0.5, ticks: 10},
-      {dy: -1, ticks: 10},
-      {dy: -1.5, ticks: 10},
-      {dy: -2, ticks: 30},
-    ]
-  end
-
-  def self.slide_shoot_leave (dir, slide, gun)
-    [
-      {dx: dir, ticks: slide},
-      {ticks: 30},
-      {shoot: gun},
-      {ticks: 30},
-      {dy: 1, ticks: 30},
-    ]
-  end
-
-  def self.dive
-    [
-      {dx: -0.25, dy: -0.75, ticks: 16},
-      {dx:  0.25, dy: -0.75, ticks: 32},
-      {dx: -0.25, dy: -0.75, ticks: 32},
-      {dx:  0.25, dy: -0.75, ticks: 32},
-    ]
-  end
-
-  def self.diagonal flip
-    [
-      {dx: 0.2 * flip, dy: -0.15, ticks: 600},
-    ]
-  end
-  
-end
-
-module Grunts
-
-  def self.bomber_gun
-    {
-      x: 2, y: 0, w: 2, h: 1,
-      vy: -0.5,
-      spr: SPRITES.bullet_enemy_large,
-    }
-  end
-  
-  def self.bomber_left loc, slide
-    {x: -6, y: loc * SHIP_BASE_SPEED,
-     w: 6, h: 6,
-     health: 2,
-     moves: Moves.slide_shoot_leave(1, slide, bomber_gun),
-     spr: SPRITES.enemy_bomber_01,
-     bullets: [],
-     active: false,
-     active_offset: -8,
-    }
-  end
-
-  def self.bomber_right loc, slide
-    {x: FLY_RANGE_W, y: loc * SHIP_BASE_SPEED,
-     w: 6, h: 6,
-     health: 2,
-     moves: Moves.slide_shoot_leave(-1, slide, bomber_gun),
-     spr: SPRITES.enemy_bomber_01,
-     bullets: [],
-     active: false,
-     active_offset: -8,
-    }
-  end
-
-  def self.diver x, y
-    {
-      x: x, y: y * SHIP_BASE_SPEED,
-      w: 3, h: 5,
-      health: 1,
-      moves: Moves.dive,
-      spr: SPRITES.enemy_diver_01,
-      active: false,
-    }
-  end
-
-  def self.flyer x, y, offset = 0
-    flip = x > FLY_RANGE_W / 2
-    {
-      x: x, y: y * SHIP_BASE_SPEED,
-      w: 8, h: 8,
-      flip_horizontally: flip,
-      health: 32,
-      moves: Moves.diagonal(flip ? -1 : 1),
-      spr: SPRITES.enemy_flying_01,
-      spr_flash: SPRITES.enemy_flying_01_flash,
-      exp: SPRITES.explosion_02,
-      active: false,
-      active_offset: offset,
-    }
-  end
-  
-end
-
-module Formations
-
-  def self.bomber_drop loc
-    loc = loc * 16
-    [
-      Grunts.bomber_left(loc, 16),
-      Grunts.bomber_left(loc, 26),
-      Grunts.bomber_left(loc, 36),
-      Grunts.bomber_left(loc, 46),
-      
-      Grunts.bomber_right(loc, 16),
-      Grunts.bomber_right(loc, 26),
-      Grunts.bomber_right(loc, 36),
-      Grunts.bomber_right(loc, 46),
-    ]
-  end
-
-  def self.diver_rush loc
-    loc = loc * 16
-    [
-      Grunts.diver(13, loc),
-      Grunts.diver(29, loc),
-      Grunts.diver(45, loc),
-      Grunts.diver(61, loc),
-      Grunts.diver(77, loc),
-    ]
-  end
-
-  def self.flyer_trio_left loc
-    loc = loc * 16
-    [
-      Grunts.flyer(-16, loc, 16),
-      Grunts.flyer(-16, loc, 32),
-      Grunts.flyer(-32, loc, 16),
-    ]
-  end
-
-  def self.flyer_trio_right loc
-    loc = loc * 16
-    [
-      Grunts.flyer(FLY_RANGE_W + 16, loc, 16),
-      Grunts.flyer(FLY_RANGE_W + 16, loc, 32),
-      Grunts.flyer(FLY_RANGE_W + 32, loc, 16),
-    ]
-  end
-  
-end
 
 class Game
   attr_gtk
   
   def tick
-    
     setup if state.tick_count == 0
 
     update_bullets
@@ -174,12 +24,14 @@ class Game
 
     render_screen
 
+    @invincible = !@invincible if inputs.keyboard.key_down.i
     $gtk.reset_next_tick if inputs.keyboard.r
+
+    render_debug args
   end
 
   
   def setup
-    
     my.player = {x: FLY_RANGE_W / 2 - 8,
                  y: 0, r_y: 16, w_y: 0,
                  w: 16, h: 16,
@@ -201,12 +53,23 @@ class Game
 
 
     my.grunts = [
-      *Formations.bomber_drop(8),
-      *Formations.bomber_drop(24),
-      *Formations.diver_rush(16),
+      # *Formations.bomber_drop(8),
+      # *Formations.bomber_drop(24),
+      
+      # *Formations.diver_rush(16),
 
-      *Formations.flyer_trio_left(8),
-      *Formations.flyer_trio_right(16),
+      # *Formations.flyer_trio_left(8),
+      # *Formations.flyer_trio_right(16),
+
+      # *Formations.diver_rush(32),
+
+      # *Formations.copter_two_shot(8),
+      
+      # *Formations.fighter_dance(16)
+
+      *Formations.fighter_duet(16, 8),
+      *Formations.fighter_duet(72, 16),
+      
      ]
     
   end
@@ -216,6 +79,14 @@ class Game
     
     p = my.player
 
+    # should maybe have made the player this size and then centered sprite
+    # around it like I do for everything else but oh well!
+    hitbox = {x: p.x + 7, y: p.y + 7, w: 2, h: 2}.quantize!
+    collisions = geometry.find_all_intersect_rect hitbox, ((my.aeb + my.grunts).map do |t|
+      t.quantize
+    end)
+    $gtk.reset_next_tick unless collisions.empty? || @invincible
+    
     p.w_y += SHIP_BASE_SPEED
     p.y = p.w_y + p.r_y
     
@@ -225,7 +96,7 @@ class Game
       p.x = (p.x + movement.x * [p.speed, SHIP_SPEED_X].min)
               .clamp(0, FLY_RANGE_W - 16)
       p.r_y = (p.r_y + movement.y * [p.speed, SHIP_SPEED_Y].min)
-                .clamp(0, FLY_RANGE_H - 16)
+                .clamp(-4, FLY_RANGE_H - 16)
 
     else
 
@@ -278,33 +149,29 @@ class Game
 
   def update_grunts
     my.grunts.reverse_each do |g|
-
       # by default become active when just above the visible line
       g.active ||= g.y < my.player.w_y + 64 + (g.active_offset || 0)
       next unless g.active
 
       g.y += SHIP_BASE_SPEED
 
-      if (move = g.moves&.first)
-        if (gun = move.shoot)
-          
-          bullet = gun.dup
-          bullet.x += g.x
-          bullet.y += g.y
-          
-          my.aeb << bullet
-          g.bullets << bullet unless move.persistent
-          g.moves.shift
-          
-        else # default is movement
-          
-          g.x += (move.dx || 0)
-          g.y += (move.dy || 0)
-          move.ticks -= 1
-          g.moves.shift unless move.ticks > 0
-          
-        end
-
+      # shoot all bullets
+      while (move = g.moves&.first) && (gun = move&.shoot)
+        bullet = gun.dup
+        bullet.x += g.x.floor
+        bullet.y += g.y.floor
+        
+        my.aeb << bullet
+        g.bullets << bullet
+        g.moves.shift
+      end
+        
+      if move = g.moves&.first
+        g.x += (move.dx || 0)
+        g.y += (move.dy || 0)
+        move.ticks -= 1
+        g.moves.shift unless move.ticks > 0
+       
         my.grunts.delete g if g.moves.empty?
       end
       
@@ -379,22 +246,28 @@ class Game
 
 
     # TODO: Think about parallax for background
-    b_off_1 = (my.player.w_y + 128).idiv(256) * 256
-    b_off_2 = (my.player.w_y).idiv(256) * 256 + 128
+    s = 256
+    s2 = s * 2
+    b_off_1 = (my.player.w_y + s).idiv(s2) * s2
+    b_off_2 = (my.player.w_y).idiv(s2) * s2 + s
+
+    p = my.player
+    hitbox = {x: p.x + 7, y: p.y + 7, w: 2, h: 2}.quantize!
     
     args.lowrez.primitives << (
       [
         SPRITES.star_background
-          .merge(x: b_off_1 / 64 % -64, y: b_off_1)
+          .merge(x: b_off_1 / 1.31 % -64, y: b_off_1)
           .translate!(my.camera),
         SPRITES.star_background
-          .merge(x: b_off_2 / 64 % 64 - 64, y: b_off_2)
+          .merge(x: b_off_2 / 1.76 % 64 - 64, y: b_off_2)
           .translate!(my.camera),
         
         to_render(my.player, SPRITES.player),
         to_render(my.help1, SPRITES.help1),
         to_render(my.help2, SPRITES.help2),
 
+        #to_debug(hitbox),
 
         #my.explosions.map { |e| to_debug(e) },
         my.explosions.map { |e| to_render(e) },
@@ -408,16 +281,16 @@ class Game
         my.grunts.filter_map { |e| to_render(e) if e.active },
         
       ])
-
-    render_debug args
-    
   end
 
   
   def to_render(actor, override = nil)
 
-    sprite = actor.flash && actor.flash > 0 && actor.spr_flash
-    actor.flash -= 1 if actor.flash
+    if actor.flash && actor.flash > 0
+      sprite = actor.spr_flash
+      actor.flash -= 1
+      return nil if !sprite
+    end
     
     sprite ||= override || actor.spr || actor
     
@@ -445,7 +318,7 @@ class Game
   def my # local state
     state.game_state
   end
-  
+
 end
 
 
@@ -475,11 +348,10 @@ class Hash
   end
 
   def translate camera
-
+    
     self.dup.translate! camera
     
   end
-  
 end
 
 
