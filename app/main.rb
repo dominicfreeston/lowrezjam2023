@@ -15,6 +15,8 @@ class Game
   attr_gtk
   
   def tick
+    # $gtk.slowmo! 2
+    
     setup if state.tick_count == 0
 
     update_bullets
@@ -53,22 +55,24 @@ class Game
 
 
     my.grunts = [
-      # *Formations.bomber_drop(8),
-      # *Formations.bomber_drop(24),
+      *Formations.bomber_drop(8),
+      *Formations.bomber_drop(24),
       
-      # *Formations.diver_rush(16),
+      *Formations.diver_rush(16),
 
-      # *Formations.flyer_trio_left(8),
-      # *Formations.flyer_trio_right(16),
+      *Formations.flyer_trio_left(8),
+      *Formations.flyer_trio_right(16),
 
-      # *Formations.diver_rush(32),
+      *Formations.diver_rush(32),
 
-      # *Formations.copter_two_shot(8),
+      *Formations.copter_two_shot(8),
       
-      # *Formations.fighter_dance(16)
+      *Formations.fighter_dance(16),
 
       *Formations.fighter_duet(16, 8),
       *Formations.fighter_duet(72, 16),
+
+      *Sequences.fighter_swarm(0)
       
      ]
     
@@ -153,22 +157,36 @@ class Game
       g.active ||= g.y < my.player.w_y + 64 + (g.active_offset || 0)
       next unless g.active
 
-      g.y += SHIP_BASE_SPEED
-
       # shoot all bullets
       while (move = g.moves&.first) && (gun = move&.shoot)
         bullet = gun.dup
         bullet.x += g.x.floor
         bullet.y += g.y.floor
+
+        # aimed bullets
+        if v = bullet.vel
+          t = {
+            x: (my.player.x + my.player.w / 2).floor,
+            y: (my.player.y + my.player.h / 2).floor,
+          } 
+          a = bullet.angle_to t
+          bullet.vx = a.vector_x * v
+          bullet.vy = a.vector_y * v
+        end
+
+        # Add a fire animation if present
+        add_explosion g.merge(exp: move.exp) if move.exp
         
         my.aeb << bullet
         g.bullets << bullet
         g.moves.shift
       end
-        
+
+      g.y += SHIP_BASE_SPEED
       if move = g.moves&.first
         g.x += (move.dx || 0)
         g.y += (move.dy || 0)
+        g.angle = (g.angle || 0) + move.rot if move.rot
         move.ticks -= 1
         g.moves.shift unless move.ticks > 0
        
@@ -199,10 +217,11 @@ class Game
       my.apb.delete(b) if b.y > (my.player.w_y + 128)
     end
 
+    active_area = {x: 0, y: my.player.w_y, w: FLY_RANGE_W, h: FLY_RANGE_H}
     my.aeb.reverse_each do |b|
       b.x += (b.vx || 0)
       b.y += (b.vy || 0) + SHIP_BASE_SPEED
-      # TODO delete when out of range
+      my.aeb.delete(b) unless active_area.intersect_rect? b
     end
     
   end
@@ -211,13 +230,25 @@ class Game
     my.explosions.reverse_each do |e|
       e.y += SHIP_BASE_SPEED
       
+      while e.moves&.first&.shoot
+        e.moves.shift
+      end
+        
+      if move = e&.moves&.first
+        e.x += (move.dx || 0)
+        e.y += (move.dy || 0)
+        move.ticks -= 1
+        e.moves.shift unless move.ticks > 0
+      end
+      
       sprite = e.spr
       fi = e.start_tick.frame_index sprite.count,
                                     sprite.first.duration,
                                     false
 
       if fi
-        e.merge!(sprite[fi])
+        ex = sprite[fi]
+        e.merge!(ex)
       else
         my.explosions.delete e
       end
@@ -232,7 +263,8 @@ class Game
     my.explosions << {x: g.x + (g.w - ex.w) / 2,
                       y: g.y + (g.h - ex.h) / 2,
                       start_tick: state.tick_count,
-                      spr: explosion}
+                      spr: explosion,
+                      moves: g.moves.map { |m| m.dup }}
   end
   
   def render_screen
@@ -269,8 +301,9 @@ class Game
 
         #to_debug(hitbox),
 
-        #my.explosions.map { |e| to_debug(e) },
+        
         my.explosions.map { |e| to_render(e) },
+        # my.explosions.map { |e| to_debug(e) },
         
 
         my.apb.map { |b| to_render(b, SPRITES.bullet_player) },
@@ -352,6 +385,7 @@ class Hash
     self.dup.translate! camera
     
   end
+
 end
 
 
@@ -368,5 +402,3 @@ $gtk.reset
 def reset
   $gtk.reset_sprites
 end
-
-

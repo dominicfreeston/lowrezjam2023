@@ -1,0 +1,29 @@
+{ "frames": [
+   {
+    "filename": "enemy_bomber_01_flash 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 6, "h": 6 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 6, "h": 6 },
+    "sourceSize": { "w": 6, "h": 6 },
+    "duration": 100
+   },
+   {
+    "filename": "enemy_bomber_01_flash 1.aseprite",
+    "frame": { "x": 7, "y": 0, "w": 6, "h": 6 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 6, "h": 6 },
+    "sourceSize": { "w": 6, "h": 6 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.40-x64",
+  "image": "enemy_bomber_01_flash.png",
+  "format": "RGBA8888",
+  "size": { "w": 13, "h": 6 },
+  "scale": "1"
+ }
+}

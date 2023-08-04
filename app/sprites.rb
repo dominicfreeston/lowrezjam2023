@@ -12,14 +12,26 @@ SPRITES = {
     {w: 6, h: 6, tile_x: 0, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01.png", duration: 6}.sprite!,
     {w: 6, h: 6, tile_x: 7, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01.png", duration: 6}.sprite!,
   ],
+  enemy_bomber_01_flash: [
+    {w: 6, h: 6, tile_x: 0, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01_flash.png", duration: 6}.sprite!,
+    {w: 6, h: 6, tile_x: 7, tile_y: 0, tile_w: 6, tiles_h: 6, path: "sprites/enemy_bomber_01_flash.png", duration: 6}.sprite!,
+  ],
   enemy_copter_01: [
     {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
     {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
     {w: 12, h: 12, tile_x: 24, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
     {w: 12, h: 12, tile_x: 36, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01.png", duration: 9}.sprite!,
   ],
+  enemy_copter_01_flash: [
+    {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 24, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 36, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
+  ],
   enemy_diver_01: {w: 5, h: 5, path: 'sprites/enemy_diver_01.png'}.sprite!,
+  enemy_diver_01_flash: {w: 5, h: 5, path: 'sprites/enemy_diver_01_flash.png'}.sprite!,
   enemy_fighter_01: {w: 8, h: 8, path: 'sprites/enemy_fighter_01.png'}.sprite!,
+  enemy_fighter_01_flash: {w: 8, h: 8, path: 'sprites/enemy_fighter_01_flash.png'}.sprite!,
   enemy_flying_01: [
     {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01.png", duration: 30}.sprite!,
     {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01.png", duration: 30}.sprite!,
@@ -28,6 +40,8 @@ SPRITES = {
     {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_flash.png", duration: 30}.sprite!,
     {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_flash.png", duration: 30}.sprite!,
   ],
+  enemy_gunner_01: {w: 8, h: 8, path: 'sprites/enemy_gunner_01.png'}.sprite!,
+  enemy_gunner_01_flash: {w: 8, h: 8, path: 'sprites/enemy_gunner_01_flash.png'}.sprite!,
   explosion_01: [
     {w: 8, h: 8, tile_x: 0, tile_y: 0, tile_w: 8, tiles_h: 8, path: "sprites/explosion_01.png", duration: 6}.sprite!,
     {w: 8, h: 8, tile_x: 8, tile_y: 0, tile_w: 8, tiles_h: 8, path: "sprites/explosion_01.png", duration: 6}.sprite!,
@@ -41,6 +55,10 @@ SPRITES = {
     {w: 16, h: 16, tile_x: 48, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/explosion_02.png", duration: 6}.sprite!,
     {w: 16, h: 16, tile_x: 64, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/explosion_02.png", duration: 6}.sprite!,
     {w: 16, h: 16, tile_x: 80, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/explosion_02.png", duration: 6}.sprite!,
+  ],
+  fighter_fire: [
+    {w: 8, h: 8, tile_x: 0, tile_y: 0, tile_w: 8, tiles_h: 8, path: "sprites/fighter_fire.png", duration: 9}.sprite!,
+    {w: 8, h: 8, tile_x: 8, tile_y: 0, tile_w: 8, tiles_h: 8, path: "sprites/fighter_fire.png", duration: 9}.sprite!,
   ],
   help1: {w: 8, h: 8, path: 'sprites/help1.png'}.sprite!,
   help2: {w: 8, h: 8, path: 'sprites/help2.png'}.sprite!,
