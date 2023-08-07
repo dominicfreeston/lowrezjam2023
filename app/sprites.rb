@@ -62,6 +62,12 @@ SPRITES = {
   ],
   help1: {w: 8, h: 8, path: 'sprites/help1.png'}.sprite!,
   help2: {w: 8, h: 8, path: 'sprites/help2.png'}.sprite!,
+  player_invincible: [
+    {w: 16, h: 16, tile_x: 0, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/player-invincible.png", duration: 6}.sprite!,
+    {w: 16, h: 16, tile_x: 16, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/player-invincible.png", duration: 6}.sprite!,
+  ],
   player: {w: 16, h: 16, path: 'sprites/player.png'}.sprite!,
   star_background: {w: 192, h: 256, path: 'sprites/star-background.png'}.sprite!,
+  tiny_bomb: {w: 3, h: 3, path: 'sprites/tiny-bomb.png'}.sprite!,
+  tiny_ship: {w: 5, h: 4, path: 'sprites/tiny-ship.png'}.sprite!,
 }

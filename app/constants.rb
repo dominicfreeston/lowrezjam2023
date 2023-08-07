@@ -1,6 +1,6 @@
 COLOR0 = {r: 155, g: 188, b: 15}
 COLOR1 = {r: 139, g: 172, b: 15}
-COLOR2 = {r:  48, g: 198, b: 48}
+COLOR2 = {r:  48, g: 98, b: 48}
 COLOR3 = {r:  15, g:  56, b: 15}
 
 FLY_RANGE_W = 96
@@ -15,6 +15,8 @@ SHIP_BASE_SPEED = 1
 SHIP_SPEED_X = 1.5
 SHIP_SPEED_Y = 1
 HELP_SPEED = 0.5
+PLAYER_RESET_TIME = 120
+PLAYER_RECOVERY_TIME = 120
 
 HELP1_POS = {x: -3, y: -7}
 HELP2_POS = {x:  11, y: -7}

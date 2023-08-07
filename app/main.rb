@@ -4,12 +4,7 @@ require 'app/sprites.rb'
 require 'app/constants.rb'
 require 'app/enemies.rb'
 require 'app/debug.rb'
-
-# Thoughts on sizes and coordinates
-# - use sub-pixel to track movement for the sake of speed variation but do all spawning, collision detection etc. based on actual pixel position. (maybe even have a separate rx, ry and update x y accordingly?)
-# - even though there's also world coordiantes, do collisions based on screen coordinates? it should work out the same and arguably removes the risk of any inconsistencies?
-# - remember that sprite size might be different to entity size
-
+require 'app/playground.rb'
 
 class Game
   attr_gtk
@@ -24,8 +19,11 @@ class Game
     update_grunts
     update_explosions
 
+    args.lowrez.background_color = COLOR3
     render_screen
-
+    
+    # render_logo
+    
     @invincible = !@invincible if inputs.keyboard.key_down.i
     $gtk.reset_next_tick if inputs.keyboard.r
 
@@ -38,62 +36,112 @@ class Game
                  y: 0, r_y: 16, w_y: 0,
                  w: 16, h: 16,
                  speed: 0}
+
+    my.score = 0
+    my.lives = 3
+    my.bombs = 3
     
-    my.help1 = my.player.merge(
-      x: my.player.x + HELP1_POS.x,
-      y: my.player.y + HELP1_POS.y,
-      w: 8, h: 8)
-    
-    my.help2 = my.player.merge(
-      x: my.player.x + HELP2_POS.x,
-      y: my.player.y + HELP2_POS.y,
-      w: 8, h: 8)
+    my.help1 = {w: 8, h: 8}
+    my.help2 = {w: 8, h: 8}
+
+    reset_help_location
 
     my.explosions = []
     my.apb = [] # active player bullets
     my.aeb = [] # active enemy bullets
-
-
+    
     my.grunts = [
-      *Formations.bomber_drop(8),
-      *Formations.bomber_drop(24),
+      # *Formations.bomber_drop(8),
+      # *Formations.bomber_drop(24),
       
-      *Formations.diver_rush(16),
+      # *Formations.diver_rush(16),
 
-      *Formations.flyer_trio_left(8),
-      *Formations.flyer_trio_right(16),
+      # *Formations.flyer_trio_left(8),
+      # *Formations.flyer_trio_right(16),
 
-      *Formations.diver_rush(32),
+      # *Formations.diver_rush(32),
 
-      *Formations.copter_two_shot(8),
+      # *Formations.copter_two_shot(8),
       
-      *Formations.fighter_dance(16),
+      # *Formations.fighter_dance(16),
 
-      *Formations.fighter_duet(16, 8),
-      *Formations.fighter_duet(72, 16),
+      # *Formations.fighter_duet(16, 8),
+      # *Formations.fighter_duet(72, 16),
 
-      *Sequences.fighter_swarm(0)
+      *Sequences.fighter_swarm(0),
       
      ]
     
   end
 
+  def reset_help_location
+    
+    my.help1.x = 0
+    my.help1.y = my.player.w_y - 8
+    my.help2.x = FLY_RANGE_W - 8
+    my.help2.y = my.player.w_y - 8
+
+  end
   
   def update_player
     
     p = my.player
 
-    # should maybe have made the player this size and then centered sprite
-    # around it like I do for everything else but oh well!
-    hitbox = {x: p.x + 7, y: p.y + 7, w: 2, h: 2}.quantize!
-    collisions = geometry.find_all_intersect_rect hitbox, ((my.aeb + my.grunts).map do |t|
-      t.quantize
-    end)
-    $gtk.reset_next_tick unless collisions.empty? || @invincible
+    ## only do collisions when player is active
+    if my.player_reset_timer.nil?
+      
+      # should maybe have made the player this size and then centered sprite
+      # around it like I do for everything else but oh well!
+      hitbox = {x: p.x + 7, y: p.y + 7, w: 2, h: 2}.quantize!
+      
+      obstacles = (my.aeb + my.grunts).map do |t|
+        t.quantize.merge!(og: t)
+      end
+      
+      collisions = geometry.find_all_intersect_rect hitbox, obstacles
+
+      unless collisions.empty? || @invincible
+        
+        my.lives -= 1
+        my.player_reset_timer = PLAYER_RESET_TIME
+        add_explosion p.merge(exp: SPRITES.explosion_02)
+
+        # explode with me!
+        collisions.each do |c|
+          g = c.og
+          unless g.health.nil?
+            g.health -= 32
+            destroy_grunt g if g.health <= 0
+          end
+        end
+        
+      end
+      
+    elsif  my.player_reset_timer <= -PLAYER_RECOVERY_TIME
+      
+      my.player_reset_timer = nil
+      
+    elsif my.player_reset_timer <= 0 # player invincible
+      
+       my.player_reset_timer -= 1
+       
+    else # player resetting
+      
+      my.player_reset_timer -= 1
+
+      p.r_y = 16
+      p.x += (FLY_RANGE_W.idiv(2) - 8 - p.x).sign * 1
+      p.quantize!
+      
+      reset_help_location
+       
+    end
     
     p.w_y += SHIP_BASE_SPEED
     p.y = p.w_y + p.r_y
-    
+
+    return if (my.player_reset_timer || 0) > 0
+
     if movement = inputs.directional_vector
 
       p.speed += 0.1
@@ -121,6 +169,13 @@ class Game
         {x: l.x + b.x, y: l.y + b.y, w: 1, h: 1}
       end
       
+    end
+
+    if inputs.keyboard.x &&
+       my.bombs > 0 &&
+       state.tick_count > (p.last_bomb || 0) + 60
+      p.last_bomb = state.tick_count
+      apply_bomb
     end
 
     update_help my.help1, shoot, {x: p.x + HELP1_POS.x, y: p.y + HELP1_POS.y }
@@ -151,8 +206,29 @@ class Game
     
   end
 
-  def update_grunts
+  
+  def apply_bomb
+    
+    my.bombs -= 1
+    
     my.grunts.reverse_each do |g|
+      
+      next unless g.active
+      
+      g.health -= 24
+      g.flash = 12
+
+      destroy_grunt g if g.health <= 0
+      
+    end
+    
+  end
+
+  
+  def update_grunts
+    
+    my.grunts.reverse_each do |g|
+      
       # by default become active when just above the visible line
       g.active ||= g.y < my.player.w_y + 64 + (g.active_offset || 0)
       next unless g.active
@@ -192,23 +268,33 @@ class Game
        
         my.grunts.delete g if g.moves.empty?
       end
-      
-      collisions = $geometry.find_all_intersect_rect g, my.apb
+
+      # Get shot?
+      bullets = my.apb.map { |b| b.quantize.merge!(og: b) }
+      collisions = $geometry.find_all_intersect_rect g, bullets
       next if collisions.empty?
       
       g.health -= collisions.length
       g.flash = 2
 
-      if g.health <= 0
-        my.grunts.delete g
-        my.aeb = my.aeb.difference g.bullets if g.bullets
-        add_explosion g
-      end
+      # Get killed?
+      destroy_grunt g if g.health <= 0
       
-      my.apb = my.apb.difference collisions
+      my.apb = my.apb.difference collisions.map { |c| c.og }
       
     end
   end
+
+  
+  def destroy_grunt g
+    
+    my.grunts.delete g
+    my.aeb = my.aeb.difference g.bullets if g.bullets
+    add_explosion g
+    my.score += g.score || 1
+
+  end
+
   
   def update_bullets
     
@@ -226,6 +312,7 @@ class Game
     
   end
 
+  
   def update_explosions
     my.explosions.reverse_each do |e|
       e.y += SHIP_BASE_SPEED
@@ -256,6 +343,7 @@ class Game
     end
   end
 
+  
   def add_explosion g
     explosion = g.exp || SPRITES.explosion_01
     ex = explosion.first
@@ -264,12 +352,11 @@ class Game
                       y: g.y + (g.h - ex.h) / 2,
                       start_tick: state.tick_count,
                       spr: explosion,
-                      moves: g.moves.map { |m| m.dup }}
+                      moves: g.moves&.map { |m| m.dup }}
   end
+
   
   def render_screen
-
-    args.lowrez.background_color = COLOR3
     
     my.camera = {
       x: ((my.player.x) * (CAMERA_RATIO_W - 1)),
@@ -294,17 +381,34 @@ class Game
         SPRITES.star_background
           .merge(x: b_off_2 / 1.76 % 64 - 64, y: b_off_2)
           .translate!(my.camera),
-        
-        to_render(my.player, SPRITES.player),
-        to_render(my.help1, SPRITES.help1),
-        to_render(my.help2, SPRITES.help2),
-
         #to_debug(hitbox),
 
         
         my.explosions.map { |e| to_render(e) },
         # my.explosions.map { |e| to_debug(e) },
-        
+        (0...my.lives).map do |i|
+          SPRITES.tiny_ship.merge(x: 1 + i * 6, y: 1)
+        end,
+
+        (0...my.bombs).map do |i|
+          SPRITES.tiny_bomb.merge(x: 60 - 4 * i, y: 1)
+        end,
+
+        score_label(my.score),
+
+        if my.player_reset_timer.nil?
+          [
+            to_render(my.player, SPRITES.player),
+            to_render(my.help1, SPRITES.help1),
+            to_render(my.help2, SPRITES.help2),
+          ]
+        elsif my.player_reset_timer <= 0
+          [
+            to_render(my.player, SPRITES.player_invincible),
+            to_render(my.help1, SPRITES.help1),
+            to_render(my.help2, SPRITES.help2),
+          ]
+        end,
 
         my.apb.map { |b| to_render(b, SPRITES.bullet_player) },
         my.aeb.map { |b| to_render(b) },
@@ -316,6 +420,15 @@ class Game
       ])
   end
 
+  def score_label score
+    {
+      x: 64, y: 63, text: score,
+      font: LOWREZ_FONT_PATH,
+      size_enum: LOWREZ_FONT_SM,
+      alignment_enum: 2,
+      vertical_alignment_enum: 2,
+    }.merge!(COLOR2)
+  end
   
   def to_render(actor, override = nil)
 

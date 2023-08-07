@@ -10,12 +10,13 @@ module CodeGen
       next unless s.end_with? ".png"
       
       path = "sprites/" + s
+      name = s.delete_suffix(".png") 
       key = s.gsub("-", "_").delete_suffix!(".png")
 
       ## Sprite sheet
-      if $gtk.stat_file "sprites/#{key}.json"
+      if $gtk.stat_file "sprites/#{name}.json"
             
-        frames = $gtk.parse_json_file("sprites/#{key}.json")["frames"]
+        frames = $gtk.parse_json_file("sprites/#{name}.json")["frames"]
         
         output += "  #{key}: [\n"
         frames.each do |f|

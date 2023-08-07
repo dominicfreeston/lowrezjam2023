@@ -1,30 +1,30 @@
 class Game
 def render_debug args
-  if !args.state.grid_rendered
-    65.map_with_index do |i|
-      args.outputs.static_debug << {
-        x:  LOWREZ_X_OFFSET,
-        y:  LOWREZ_Y_OFFSET + (i * 10),
-        x2: LOWREZ_X_OFFSET + LOWREZ_ZOOMED_SIZE,
-        y2: LOWREZ_Y_OFFSET + (i * 10),
-        r: 128,
-        g: 128,
-        b: 128,
-        a: 80
-      }.line!
+  # if !args.state.grid_rendered
+  #   65.map_with_index do |i|
+  #     args.outputs.static_debug << {
+  #       x:  LOWREZ_X_OFFSET,
+  #       y:  LOWREZ_Y_OFFSET + (i * 10),
+  #       x2: LOWREZ_X_OFFSET + LOWREZ_ZOOMED_SIZE,
+  #       y2: LOWREZ_Y_OFFSET + (i * 10),
+  #       r: 128,
+  #       g: 128,
+  #       b: 128,
+  #       a: 80
+  #     }.line!
 
-      args.outputs.static_debug << {
-        x:  LOWREZ_X_OFFSET + (i * 10),
-        y:  LOWREZ_Y_OFFSET,
-        x2: LOWREZ_X_OFFSET + (i * 10),
-        y2: LOWREZ_Y_OFFSET + LOWREZ_ZOOMED_SIZE,
-        r: 128,
-        g: 128,
-        b: 128,
-        a: 80
-      }.line!
-    end
-  end
+  #     args.outputs.static_debug << {
+  #       x:  LOWREZ_X_OFFSET + (i * 10),
+  #       y:  LOWREZ_Y_OFFSET,
+  #       x2: LOWREZ_X_OFFSET + (i * 10),
+  #       y2: LOWREZ_Y_OFFSET + LOWREZ_ZOOMED_SIZE,
+  #       r: 128,
+  #       g: 128,
+  #       b: 128,
+  #       a: 80
+  #     }.line!
+  #   end
+  # end
 
   args.state.grid_rendered = true
 
