@@ -19,7 +19,7 @@ LOWREZ_FONT_MD_HEIGHT  = 10
 LOWREZ_FONT_SM         = -8.5
 LOWREZ_FONT_SM_HEIGHT  = 5
 
-LOWREZ_FONT_PATH       = 'fonts/lowrez.ttf'
+LOWREZ_FONT_PATH       = 'fonts/PICO-8.ttf'
 
 
 class LowrezOutputs

@@ -4,7 +4,7 @@ require 'app/sprites.rb'
 require 'app/constants.rb'
 require 'app/enemies.rb'
 require 'app/debug.rb'
-require 'app/playground.rb'
+require 'app/sides.rb'
 
 class Game
   attr_gtk
@@ -12,20 +12,19 @@ class Game
   def tick
     # $gtk.slowmo! 2
     
-    setup if state.tick_count == 0
+    setup unless my.setup
 
     update_bullets
     update_player
     update_grunts
     update_explosions
 
-    args.lowrez.background_color = COLOR3
+    
     render_screen
     
     # render_logo
     
     @invincible = !@invincible if inputs.keyboard.key_down.i
-    $gtk.reset_next_tick if inputs.keyboard.r
 
     render_debug args
   end
@@ -71,6 +70,8 @@ class Game
       *Sequences.fighter_swarm(0),
       
      ]
+
+    my.setup = true
     
   end
 
@@ -122,8 +123,8 @@ class Game
       my.player_reset_timer = nil
       
     elsif my.player_reset_timer <= 0 # player invincible
-      
-       my.player_reset_timer -= 1
+
+      my.player_reset_timer -= 1
        
     else # player resetting
       
@@ -134,6 +135,8 @@ class Game
       p.quantize!
       
       reset_help_location
+
+      $current_scene = $outro if my.lives == 0 && my.player_reset_timer == 1
        
     end
     
@@ -157,7 +160,7 @@ class Game
       
     end
 
-    if inputs.keyboard.space &&
+    if $input.shoot? &&
        state.tick_count > (p.last_shot || 0) + BULLET_GAP
 
       shoot = true
@@ -171,13 +174,14 @@ class Game
       
     end
 
-    if inputs.keyboard.x &&
+    if $input.bomb_now? &&
        my.bombs > 0 &&
-       state.tick_count > (p.last_bomb || 0) + 60
+       state.tick_count > (p.last_bomb || 0) + BOMB_LENGTH
       p.last_bomb = state.tick_count
-      apply_bomb
+      trigger_bomb
     end
 
+    update_bomb
     update_help my.help1, shoot, {x: p.x + HELP1_POS.x, y: p.y + HELP1_POS.y }
     update_help my.help2, shoot, {x: p.x + HELP2_POS.x, y: p.y + HELP2_POS.y }
     
@@ -207,21 +211,43 @@ class Game
   end
 
   
-  def apply_bomb
+  def trigger_bomb
     
     my.bombs -= 1
+    my.bomb_ticks = BOMB_LENGTH
+
+    mid = FLY_RANGE_W.idiv(2)
+    add_explosion(
+      {
+        x: mid + (my.player.x + 8 - mid) * CAMERA_RATIO_W,
+        y: my.player.w_y + 32,
+        w: 0,
+        h: 0,
+        exp: SPRITES.explosion_bomb,
+      }
+    )
+    
+  end
+
+  
+  def update_bomb
+
+    return unless (my.bomb_ticks || 0) > 0
+    
+    my.bomb_ticks -= 1
+
+    my.aeb = []
     
     my.grunts.reverse_each do |g|
       
       next unless g.active
       
-      g.health -= 24
-      g.flash = 12
+      g.health -= 1
+      g.flash = 1
 
       destroy_grunt g if g.health <= 0
       
     end
-    
   end
 
   
@@ -347,11 +373,12 @@ class Game
   def add_explosion g
     explosion = g.exp || SPRITES.explosion_01
     ex = explosion.first
-    
+
+    rot = [0, 90, 180, 360].sample
     my.explosions << {x: g.x + (g.w - ex.w) / 2,
                       y: g.y + (g.h - ex.h) / 2,
                       start_tick: state.tick_count,
-                      spr: explosion,
+                      spr: explosion.map { |e| e.merge(angle: rot) },
                       moves: g.moves&.map { |m| m.dup }}
   end
 
@@ -465,6 +492,10 @@ class Game
     state.game_state
   end
 
+  def reset_me
+    state.game_state = {}
+  end
+
 end
 
 
@@ -503,15 +534,30 @@ end
 
 
 def tick args
-  
+  $input ||= UserInput.new
+  $intro ||= Intro.new
+  $outro ||= Outro.new
   $game ||= Game.new
+
+  $input.args = args
+  $intro.args = args
+  $outro.args = args
   $game.args = args
-  $game.tick
+
+  reset if args.state.tick_count == 0
   
+  args.lowrez.background_color = COLOR3
+  $gtk.reset_next_tick if args.inputs.keyboard.r
+  
+  $current_scene.tick
+end
+
+def reset
+  $current_scene = $intro
+  $game.my.setup = false
+  $gtk.reset_sprites
 end
 
 $gtk.reset
 
-def reset
-  $gtk.reset_sprites
-end
+

@@ -1,6 +1,6 @@
 { "frames": [
    {
-    "filename": "explosion_01 0.aseprite",
+    "filename": "explosion_01_nosym 0.aseprite",
     "frame": { "x": 0, "y": 0, "w": 8, "h": 8 },
     "rotated": false,
     "trimmed": false,
@@ -9,7 +9,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_01 1.aseprite",
+    "filename": "explosion_01_nosym 1.aseprite",
     "frame": { "x": 8, "y": 0, "w": 8, "h": 8 },
     "rotated": false,
     "trimmed": false,
@@ -18,7 +18,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_01 2.aseprite",
+    "filename": "explosion_01_nosym 2.aseprite",
     "frame": { "x": 16, "y": 0, "w": 8, "h": 8 },
     "rotated": false,
     "trimmed": false,
@@ -27,13 +27,31 @@
     "duration": 100
    },
    {
-    "filename": "explosion_01 3.aseprite",
+    "filename": "explosion_01_nosym 3.aseprite",
     "frame": { "x": 24, "y": 0, "w": 8, "h": 8 },
     "rotated": false,
     "trimmed": false,
     "spriteSourceSize": { "x": 0, "y": 0, "w": 8, "h": 8 },
     "sourceSize": { "w": 8, "h": 8 },
     "duration": 100
+   },
+   {
+    "filename": "explosion_01_nosym 4.aseprite",
+    "frame": { "x": 32, "y": 0, "w": 8, "h": 8 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 8, "h": 8 },
+    "sourceSize": { "w": 8, "h": 8 },
+    "duration": 100
+   },
+   {
+    "filename": "explosion_01_nosym 5.aseprite",
+    "frame": { "x": 40, "y": 0, "w": 8, "h": 8 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 8, "h": 8 },
+    "sourceSize": { "w": 8, "h": 8 },
+    "duration": 500
    }
  ],
  "meta": {
@@ -41,7 +59,7 @@
   "version": "1.2.40-x64",
   "image": "explosion_01.png",
   "format": "RGBA8888",
-  "size": { "w": 32, "h": 8 },
+  "size": { "w": 48, "h": 8 },
   "scale": "1"
  }
 }

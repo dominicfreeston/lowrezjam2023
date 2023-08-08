@@ -1,6 +1,6 @@
 { "frames": [
    {
-    "filename": "explosion_02 0.aseprite",
+    "filename": "explosion_02_nosym 0.aseprite",
     "frame": { "x": 0, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -9,7 +9,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_02 1.aseprite",
+    "filename": "explosion_02_nosym 1.aseprite",
     "frame": { "x": 16, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -18,7 +18,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_02 2.aseprite",
+    "filename": "explosion_02_nosym 2.aseprite",
     "frame": { "x": 32, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -27,7 +27,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_02 3.aseprite",
+    "filename": "explosion_02_nosym 3.aseprite",
     "frame": { "x": 48, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -36,7 +36,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_02 4.aseprite",
+    "filename": "explosion_02_nosym 4.aseprite",
     "frame": { "x": 64, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,
@@ -45,7 +45,7 @@
     "duration": 100
    },
    {
-    "filename": "explosion_02 5.aseprite",
+    "filename": "explosion_02_nosym 5.aseprite",
     "frame": { "x": 80, "y": 0, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": false,

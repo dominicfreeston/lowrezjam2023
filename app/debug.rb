@@ -35,7 +35,7 @@ def render_debug args
   args.state.label_style  = { size_enum: -1.5 }
 
 
-  screen_position = to_render(my.player, {w: 0, h: 0})
+  screen_position = to_render(my.player, {w: 16, h: 16})
   args.state.watch_list = [
     "frame_rate is:        #{args.gtk.current_framerate}",
     "tick_count is:       #{args.state.tick_count}",
