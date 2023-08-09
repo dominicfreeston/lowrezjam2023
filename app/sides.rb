@@ -61,6 +61,10 @@ class Intro
   def my # local state
     state.intro_state
   end
+
+   def reset_me
+    state.intro_state = {}
+  end
 end
 
 
@@ -196,19 +200,19 @@ class UserInput
   attr_gtk
 
   def initialize
-    @shoot = :space
-    @bomb = :shift
+    @shoot = [:space, :enter, :x]
+    @bomb = [:shift, :z, :c]
   end
   
   def shoot?
-    inputs.keyboard.send @shoot
+    @shoot.reduce(false) { |r, k| r || inputs.keyboard.send(k) } 
   end
 
   def shoot_now?
-    inputs.keyboard.key_down.send @shoot
+    @shoot.reduce(false) { |r, k| r || inputs.keyboard.key_down.send(k) }
   end
 
   def bomb_now?
-    inputs.keyboard.key_down.send @bomb
+    @bomb.reduce(false) { |r, k| r || inputs.keyboard.key_down.send(k) } 
   end
 end

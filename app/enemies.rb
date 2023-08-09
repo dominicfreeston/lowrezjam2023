@@ -205,7 +205,8 @@ module Grunts
     {
       x: x, y: y * SHIP_BASE_SPEED,
       w: 8, h: 8,
-      health: 12,
+      health: 10,
+      score: 2,
       moves: Moves.fighter_loop(flip ? -1 : 1),
       spr: SPRITES.enemy_fighter_01,
       spr_flash: SPRITES.enemy_fighter_01_flash,
@@ -220,9 +221,11 @@ module Grunts
       w: 8, h: 8,
       flip_horizontally: flip,
       health: 40,
+      score: 4,
       moves: Moves.diagonal(flip ? -1 : 1),
       spr: SPRITES.enemy_flying_01,
       spr_flash: SPRITES.enemy_flying_01_flash,
+      spr_hurt: SPRITES.enemy_flying_01_hurt,
       exp: SPRITES.explosion_02,
       active_offset: offset,
     }
@@ -230,12 +233,14 @@ module Grunts
 
   def self.copter x, y
     {
-      x: x, y: y * SHIP_BASE_SPEED,
+      x: x - 6, y: y * SHIP_BASE_SPEED,
       w: 12, h: 12,
       health: 60,
+      score: 6,
       moves: Moves.copter_move_1,
       spr: SPRITES.enemy_copter_01,
       spr_flash: SPRITES.enemy_copter_01_flash,
+      spr_hurt: SPRITES.enemy_copter_01_hurt,
       bullets: [],
       exp: SPRITES.explosion_02,
     }
@@ -243,9 +248,10 @@ module Grunts
 
   def self.gunner x, y, d=8
     {
-      x: x, y: y * SHIP_BASE_SPEED,
+      x: x - 4, y: y * SHIP_BASE_SPEED,
       w: 8, h: 8,
       health: 12,
+      score: 2,
       moves: Moves.down_round_out(d),
       spr: SPRITES.enemy_gunner_01,
       spr_flash: SPRITES.enemy_gunner_01_flash,
@@ -270,7 +276,7 @@ module Formations
       Grunts.bomber_right(loc, 36),
       Grunts.bomber_right(loc, 46),
     ]
-  end
+   end
 
   def self.fighter_dance loc,
     loc = loc * 16
@@ -331,23 +337,48 @@ module Formations
     ]
   end
 
+  def self.copter_descent loc
+    loc = loc * 16
+    [
+      Grunts.copter(60, loc),
+      Grunts.copter(36, loc),
+    ]
+  end
+  
   def self.copter_two_shot loc
     loc = loc * 16
-    
     [
-      Grunts.copter(20, loc),
-      Grunts.copter(62, loc + 128),
+      Grunts.copter(26, loc),
+      Grunts.copter(70, loc + 128),
     ]
   end
 
+  def self.gunner_duo x, loc, d = 8, spread = 12
+    loc = loc * 16
+    [
+      Grunts.gunner(x - spread, loc, d),
+      Grunts.gunner(x + spread, loc, d),
+    ]
+  end
+    
   def self.gunner_stagger loc
     loc = loc * 16
     [
-      Grunts.gunner(44, loc, 8),
-      Grunts.gunner(32, loc + 20, 4),
-      Grunts.gunner(56, loc + 40, 4),
-      Grunts.gunner(10, loc + 80, 6),
-      Grunts.gunner(78, loc + 60, 6),
+      Grunts.gunner(48, loc, 8),
+      Grunts.gunner(36, loc + 20, 4),
+      Grunts.gunner(60, loc + 40, 4),
+      Grunts.gunner(14, loc + 80, 6),
+      Grunts.gunner(82, loc + 60, 6),
+    ]
+  end
+
+  def self.gunner_pincer loc
+    y = loc * 16
+    [
+      Grunts.gunner(16, (y += 0 * 16), 8),
+      Grunts.gunner(80, (y += 2 * 16), 8),
+      Grunts.gunner(16, (y += 2 * 16), 12),
+      Grunts.gunner(80, (y += 2 * 16), 12),
     ]
   end
   
@@ -379,6 +410,80 @@ module Sequences
       *Formations.fighter_dance(loc + 40),
       *Formations.fighter_dance(loc + 44),
     ]    
+  end
+
+  def self.part_1 loc
+    y = loc
+    s = [
+      *Formations.gunner_duo(48, y += 8, 4, 12),
+      *Formations.gunner_duo(32, y += 8, 10, 6),
+      *Formations.gunner_duo(64, y += 8, 10, 6),
+      
+      *Formations.gunner_duo(48, y += 8, 4, 16),
+      
+      *Formations.fighter_duet(80, y += 8),
+      *Formations.fighter_duet(16, y += 8),
+      
+      *Formations.diver_rush(y += 8),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+
+      *Formations.bomber_drop(y += 0),
+    ]
+    return y, s
+  end
+
+  def self.part_2 loc
+    y = loc
+    s = [
+      # pretty nice little combo here
+      *Formations.flyer_trio_right(y += 0),
+      *Formations.copter_two_shot(y += 8),
+
+      *Formations.bomber_drop(y += 12),
+
+      *Formations.gunner_stagger(y += 8),
+      *Formations.fighter_duet(70, y += 8),
+      *Formations.fighter_duet(26, y += 2),
+
+      *Formations.diver_rush(y += 2),
+      *Formations.diver_rush(y += 2),
+
+      *Formations.bomber_drop(y += 0),
+    ]
+    return y, s
+  end
+
+  # swarm pincer
+  def self.part_3 loc
+    y = loc
+    s = [
+      *Sequences.fighter_swarm(y += 4),
+      *Formations.gunner_pincer(y += 8),
+      *Formations.gunner_pincer(y += 12),
+      *Formations.gunner_pincer(y += 12),
+      *Formations.gunner_pincer(y += 12),
+    ]
+    return y, s
+  end
+
+  # quite tough!
+  def self.part_4 loc
+    y = loc
+    s = [
+      *Formations.fighter_dance(y += 0),
+      *Formations.copter_descent(y += 2),
+      *Formations.gunner_pincer(y += 4),
+      *Formations.diver_rush(y += 2),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 6),
+      *Formations.diver_rush(y += 2),
+      *Formations.bomber_drop(y += 0),
+      *Formations.fighter_dance(y += 4),
+    ]
+    return y, s
   end
 end
 

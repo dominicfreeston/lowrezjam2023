@@ -48,29 +48,48 @@ class Game
     my.explosions = []
     my.apb = [] # active player bullets
     my.aeb = [] # active enemy bullets
-    
-    my.grunts = [
-      # *Formations.bomber_drop(8),
-      # *Formations.bomber_drop(24),
-      
-      # *Formations.diver_rush(16),
 
-      # *Formations.flyer_trio_left(8),
-      # *Formations.flyer_trio_right(16),
+    y = 4
+
+    my.grunts = [
+     # Grunts.gunner(16, (y += 4) * 16, 8),
+      # Grunts.gunner(80, (y += 2) * 16, 8),
+      # Grunts.gunner(16, (y += 2) * 16, 12),
+      # Grunts.gunner(80, (y += 2) * 16, 12),
+      
+      
+     
+      # *Formations.bomber_drop(y += 16),
+      #*Formations.flyer_trio_right(y += 8),
 
       # *Formations.diver_rush(32),
 
-      # *Formations.copter_two_shot(8),
       
+      # *Formations.flyer_trio_right(y += 8),
+      # *Formations.bomber_drop(8),
+      # *Formations.bomber_drop(24),
+
       # *Formations.fighter_dance(16),
 
       # *Formations.fighter_duet(16, 8),
       # *Formations.fighter_duet(72, 16),
 
-      *Sequences.fighter_swarm(0),
-      
-     ]
+      #*Sequences.fighter_swarm(y += 8),
+    ]
+    
+    y, s = Sequences.part_1(y = 0)
+    my.grunts += s
 
+    y, s = Sequences.part_2(y + 2)
+    my.grunts += s
+
+    y, s = Sequences.part_3(y + 4)
+    my.grunts += s
+
+    y, s = Sequences.part_4(y + 4)
+    my.grunts += s
+
+    
     my.setup = true
     
   end
@@ -425,7 +444,7 @@ class Game
 
         if my.player_reset_timer.nil?
           [
-            to_render(my.player, SPRITES.player),
+            to_render(my.player, player_sprite),
             to_render(my.help1, SPRITES.help1),
             to_render(my.help2, SPRITES.help2),
           ]
@@ -447,6 +466,15 @@ class Game
       ])
   end
 
+  def player_sprite
+    dx = inputs.left_right
+    if dx == 0 || my.player.speed < 0.8
+      SPRITES.player
+    else
+      SPRITES.player_turn.merge(flip_horizontally: dx < 0)
+    end
+  end
+
   def score_label score
     {
       x: 64, y: 63, text: score,
@@ -459,6 +487,10 @@ class Game
   
   def to_render(actor, override = nil)
 
+    if actor.spr_hurt && (h = actor.health) && h < 12
+      sprite = actor.spr_hurt
+    end
+    
     if actor.flash && actor.flash > 0
       sprite = actor.spr_flash
       actor.flash -= 1

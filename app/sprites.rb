@@ -28,6 +28,12 @@ SPRITES = {
     {w: 12, h: 12, tile_x: 24, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
     {w: 12, h: 12, tile_x: 36, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_flash.png", duration: 9}.sprite!,
   ],
+  enemy_copter_01_hurt: [
+    {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_hurt.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_hurt.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 24, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_hurt.png", duration: 9}.sprite!,
+    {w: 12, h: 12, tile_x: 36, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_copter_01_hurt.png", duration: 9}.sprite!,
+  ],
   enemy_diver_01: {w: 5, h: 5, path: 'sprites/enemy_diver_01.png'}.sprite!,
   enemy_diver_01_flash: {w: 5, h: 5, path: 'sprites/enemy_diver_01_flash.png'}.sprite!,
   enemy_fighter_01: {w: 8, h: 8, path: 'sprites/enemy_fighter_01.png'}.sprite!,
@@ -39,6 +45,10 @@ SPRITES = {
   enemy_flying_01_flash: [
     {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_flash.png", duration: 30}.sprite!,
     {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_flash.png", duration: 30}.sprite!,
+  ],
+  enemy_flying_01_hurt: [
+    {w: 12, h: 12, tile_x: 0, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_hurt.png", duration: 30}.sprite!,
+    {w: 12, h: 12, tile_x: 12, tile_y: 0, tile_w: 12, tiles_h: 12, path: "sprites/enemy_flying_01_hurt.png", duration: 30}.sprite!,
   ],
   enemy_gunner_01: {w: 8, h: 8, path: 'sprites/enemy_gunner_01.png'}.sprite!,
   enemy_gunner_01_flash: {w: 8, h: 8, path: 'sprites/enemy_gunner_01_flash.png'}.sprite!,
@@ -103,6 +113,7 @@ SPRITES = {
     {w: 16, h: 16, tile_x: 0, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/player-invincible.png", duration: 6}.sprite!,
     {w: 16, h: 16, tile_x: 16, tile_y: 0, tile_w: 16, tiles_h: 16, path: "sprites/player-invincible.png", duration: 6}.sprite!,
   ],
+  player_turn: {w: 16, h: 16, path: 'sprites/player-turn.png'}.sprite!,
   player: {w: 16, h: 16, path: 'sprites/player.png'}.sprite!,
   star_background: {w: 192, h: 256, path: 'sprites/star-background.png'}.sprite!,
   tiny_bomb: {w: 3, h: 3, path: 'sprites/tiny-bomb.png'}.sprite!,
