@@ -487,4 +487,3 @@ module Sequences
   end
 end
 
-$gtk.reset

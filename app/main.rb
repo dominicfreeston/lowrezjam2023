@@ -11,6 +11,15 @@ class Game
   
   def tick
     # $gtk.slowmo! 2
+
+    audio[:music] ||= { input: "sounds/kir-snes.ogg", looping: true}
+    audio[:music].gain = if !my.player_reset_timer and (my.bomb_ticks || 0) <= 0
+                           1.0
+                         elsif (my.player_reset_timer || 0) > 0
+                           0.2
+                         else
+                           [audio[:music].gain + 0.01, 1].min
+                         end
     
     setup unless my.setup
 
@@ -121,6 +130,8 @@ class Game
       collisions = geometry.find_all_intersect_rect hitbox, obstacles
 
       unless collisions.empty? || @invincible
+
+        outputs.sounds << "sounds/death.wav"
         
         my.lives -= 1
         my.player_reset_timer = PLAYER_RESET_TIME
@@ -182,6 +193,11 @@ class Game
     if $input.shoot? &&
        state.tick_count > (p.last_shot || 0) + BULLET_GAP
 
+
+      if (my.bomb_ticks || 0) <= 0
+        audio[:shoot] = { input: "sounds/shoot.wav", looping: false}
+      end
+      
       shoot = true
       p.last_shot = state.tick_count
       # launch bullets based on visible position
@@ -230,8 +246,11 @@ class Game
   end
 
   
-  def trigger_bomb
-    
+  def trigger_bomb 
+    audio[:bomb1] = {input:"sounds/bomb.wav"}    
+    audio[:bomb2] = {input: "sounds/bomb-2.wav"} 
+    audio[:music].gain = 0.1
+
     my.bombs -= 1
     my.bomb_ticks = BOMB_LENGTH
 
@@ -332,6 +351,8 @@ class Game
 
   
   def destroy_grunt g
+
+    outputs.sounds << "sounds/explosion.wav"
     
     my.grunts.delete g
     my.aeb = my.aeb.difference g.bullets if g.bullets
@@ -590,6 +611,5 @@ def reset
   $gtk.reset_sprites
 end
 
-$gtk.reset
 
 

@@ -180,6 +180,7 @@ class Outro
     ]
 
     if $input.shoot_now?
+      audio[:music] = nil
       reset_me
       $game.reset_me
       $current_scene = $game
