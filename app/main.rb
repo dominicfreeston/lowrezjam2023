@@ -10,24 +10,21 @@ class Game
   attr_gtk
   
   def tick
-    # $gtk.slowmo! 2
-
-    audio[:music] ||= { input: "sounds/kir-snes.ogg", looping: true}
-    audio[:music].gain = if !my.player_reset_timer and (my.bomb_ticks || 0) <= 0
-                           1.0
-                         elsif (my.player_reset_timer || 0) > 0
-                           0.2
-                         else
-                           [audio[:music].gain + 0.01, 1].min
-                         end
+    my.pause = !my.pause if inputs.keyboard.key_down.escape
     
+    # $gtk.slowmo! 2
+    my.tick_count ||= 0    
     setup unless my.setup
 
-    update_bullets
-    update_player
-    update_grunts
-    update_explosions
+    update_level_music
 
+    if !my.pause
+      my.tick_count += 1
+      update_bullets
+      update_player
+      update_grunts
+      update_explosions
+    end
     
     render_screen
     
@@ -36,6 +33,17 @@ class Game
     @invincible = !@invincible if inputs.keyboard.key_down.i
 
     render_debug args
+
+    args.lowrez.primitives << [1, 2].map do |n|
+      {
+        x: 26 + n* 4,
+        y: 32,
+        w: 2,
+        h: 8,
+        anchor_x: 0.5,
+        anchor_y: 0.5,
+      }.merge!(COLOR2).solid!
+    end if my.pause
   end
 
   
@@ -60,49 +68,30 @@ class Game
 
     y = 4
 
-    my.grunts = [
-     # Grunts.gunner(16, (y += 4) * 16, 8),
-      # Grunts.gunner(80, (y += 2) * 16, 8),
-      # Grunts.gunner(16, (y += 2) * 16, 12),
-      # Grunts.gunner(80, (y += 2) * 16, 12),
-      
-      
-     
-      # *Formations.bomber_drop(y += 16),
-      #*Formations.flyer_trio_right(y += 8),
+    my.grunts = []
 
-      # *Formations.diver_rush(32),
-
-      
-      # *Formations.flyer_trio_right(y += 8),
-      # *Formations.bomber_drop(8),
-      # *Formations.bomber_drop(24),
-
-      # *Formations.fighter_dance(16),
-
-      # *Formations.fighter_duet(16, 8),
-      # *Formations.fighter_duet(72, 16),
-
-      #*Sequences.fighter_swarm(y += 8),
-    ]
+    y = 0
     
-    y, s = Sequences.part_1(y = 0)
-    my.grunts += s
+     y, s = Sequences.part_1(y)
+     my.grunts += s
 
-    y, s = Sequences.part_2(y + 2)
-    my.grunts += s
+    # y, s = Sequences.part_2(y + 2)
+    # my.grunts += s
 
-    y, s = Sequences.part_3(y + 4)
-    my.grunts += s
+    # y, s = Sequences.part_3(y + 4)
+    # my.grunts += s
 
-    y, s = Sequences.part_4(y + 4)
-    my.grunts += s
+    # y, s = Sequences.part_4(y + 4)
+    # my.grunts += s
 
+    # y, s = Sequences.part_5(y + 4)
+    # my.grunts += s
     
     my.setup = true
     
   end
 
+  
   def reset_help_location
     
     my.help1.x = 0
@@ -111,7 +100,41 @@ class Game
     my.help2.y = my.player.w_y - 8
 
   end
+
   
+  def update_level_music
+    if my.grunts.length > 0
+      audio[:music] ||= { input: "sounds/kir-snes.ogg", looping: true, gain: 0.1 }
+      audio[:music].paused = my.pause    
+      audio[:music].gain = if (my.player_reset_timer || 0) > 0 || my.pause
+                             0.2
+                           else
+                             [audio[:music].gain + 0.01, 1].min
+                           end
+    elsif audio[:music] && audio[:music].gain > 0
+      audio[:music].gain -= 0.002
+    else 
+      audio[:music] = nil
+
+      audio[:alarm] ||= { input: "sounds/alarm.wav", looping: true, gain: 0.5} if !my.alarm_playcount
+      my.alarm_playcount ||= 0
+      my.alarm_playtime ||= 0
+      if audio[:alarm]
+        audio[:alarm].paused = my.pause
+        playtime = (audio[:alarm][:playtime] || 0)
+        my.alarm_playcount += 1 if playtime < my.alarm_playtime
+        my.alarm_playtime = playtime
+        audio[:alarm].looping = false if my.alarm_playcount >= 3
+        audio[:alarm].gain -= 0.002 if not audio[:alarm].looping
+      end      
+
+      audio[:boss_music].paused = my.pause
+      audio[:boss_music] ||= { input: "sounds/boss.ogg", looping: true, gain: 0.0 }
+      audio[:boss_music].gain = [audio[:boss_music].gain + 0.002, 1].min
+    end
+  end
+  
+    
   def update_player
     
     p = my.player
@@ -191,15 +214,15 @@ class Game
     end
 
     if $input.shoot? &&
-       state.tick_count > (p.last_shot || 0) + BULLET_GAP
+       my.tick_count > (p.last_shot || 0) + BULLET_GAP
 
 
       if (my.bomb_ticks || 0) <= 0
-        audio[:shoot] = { input: "sounds/shoot.wav", looping: false}
+        audio[:shoot] = { input: "sounds/shoot.wav", looping: false, gain: 0.5}
       end
       
       shoot = true
-      p.last_shot = state.tick_count
+      p.last_shot = my.tick_count
       # launch bullets based on visible position
       l = p.quantize
     
@@ -211,8 +234,8 @@ class Game
 
     if $input.bomb_now? &&
        my.bombs > 0 &&
-       state.tick_count > (p.last_bomb || 0) + BOMB_LENGTH
-      p.last_bomb = state.tick_count
+       my.tick_count > (p.last_bomb || 0) + BOMB_LENGTH
+      p.last_bomb = my.tick_count
       trigger_bomb
     end
 
@@ -397,7 +420,8 @@ class Game
       sprite = e.spr
       fi = e.start_tick.frame_index sprite.count,
                                     sprite.first.duration,
-                                    false
+                                    false,
+                                    my.tick_count
 
       if fi
         ex = sprite[fi]
@@ -417,7 +441,7 @@ class Game
     rot = [0, 90, 180, 360].sample
     my.explosions << {x: g.x + (g.w - ex.w) / 2,
                       y: g.y + (g.h - ex.h) / 2,
-                      start_tick: state.tick_count,
+                      start_tick: my.tick_count,
                       spr: explosion.map { |e| e.merge(angle: rot) },
                       moves: g.moves&.map { |m| m.dup }}
   end
@@ -522,7 +546,7 @@ class Game
     
     if sprite.is_a? Array
       fi = (actor.start_tick || 0)
-             .frame_index sprite.count, sprite.first.duration, true
+             .frame_index sprite.count, sprite.first.duration, true, my.tick_count
       sprite = sprite[fi]
     end
     

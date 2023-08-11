@@ -278,6 +278,16 @@ module Formations
     ]
    end
 
+  def self.bomber_swap loc
+    loc = loc * 16
+    [
+      Grunts.bomber_left(loc, 72),
+      Grunts.bomber_left(loc, 60),
+      Grunts.bomber_right(loc, 72),
+      Grunts.bomber_right(loc, 60),
+    ]
+  end
+
   def self.fighter_dance loc,
     loc = loc * 16
     [
@@ -482,6 +492,32 @@ module Sequences
       *Formations.diver_rush(y += 2),
       *Formations.bomber_drop(y += 0),
       *Formations.fighter_dance(y += 4),
+    ]
+    return y, s
+  end
+
+  def self.part_5 loc
+    y = loc
+    s = [
+      *Formations.flyer_trio_left(y += 0),
+      *Formations.flyer_trio_right(y += 2),
+      *Formations.copter_descent(y += 4),
+      *Formations.diver_rush(y += 8),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+      *Formations.bomber_swap(y += 4),
+      *Formations.bomber_drop(y += 8),
+      *Formations.copter_two_shot(y += 4),
+      *Formations.diver_rush(y += 8),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+      *Formations.copter_descent(y += 2),
+      *Sequences.fighter_swarm(y += 0),
+      *Formations.diver_rush(y += 2),
+      *Formations.diver_rush(y += 1),
+      *Formations.diver_rush(y += 1),
+      *Formations.copter_two_shot(y += 8),
+      *Formations.flyer_trio_left(y += 0),
     ]
     return y, s
   end
