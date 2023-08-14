@@ -10,12 +10,13 @@ class Intro
     
     case my.phase
     when :start
+      audio[:victory] ||= { input: "sounds/victory.wav", looping: false,}
       sprite = SPRITES.logo_take_2
       fi = my.phase_start_time
              .frame_index sprite.count, sprite.first.duration, true
       args.lowrez.primitives << sprite[fi]
 
-      if state.tick_count > my.phase_start_time + 150 || $input.shoot_now?
+      if state.tick_count > my.phase_start_time + 120 || $input.shoot_now?
         my.phase = :transition
         my.phase_start_time = nil
       end
@@ -165,9 +166,9 @@ class Outro
       end,
       if fi % 6 != 0 && !my.won
         if fi < 6
-          lines = ["shoot to", "start again"]
+          lines = ["shoot to", "continue"]
         else
-          lines = ["bomb to", "continue"]
+          lines = ["bomb to", "start again"]
         end
         [
           {
@@ -215,32 +216,28 @@ class Outro
       end,
     ]
 
+    return unless my.phase == :show_score
+    
     if my.won &&
-       my.phase == :show_score &&
-       $input.shoot_now?
+       $input.shoot_now? ||
+       $input.bomb_now?
 
       reset_me
       $intro.reset_me
       $game.reset_me
       $current_scene = $intro
 
-      return
-    end
-    
-    return if my.won
-
-    if $input.shoot_now?
+      # leaky!
       audio[:music] = nil
-      reset_me
-      $game.reset_me
-      $current_scene = $game
-    end
+      audio[:boss_music] = nil
+      audio[:alarm] = nil
     
-    if $input.bomb_now? and !my.won
+    elsif $input.shoot_now?
+      
       reset_me
-      $game.trigger_bomb
       $game.reset_player
       $current_scene = $game
+      
     end
   end
   

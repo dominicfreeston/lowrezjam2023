@@ -706,8 +706,8 @@ module Sequences
       *Formations.diver_rush(y += 2),
       *Formations.diver_rush(y += 1),
       *Formations.diver_rush(y += 1),
-      *Formations.copter_two_shot(y += 8),
-      *Formations.flyer_trio_left(y += 0),
+      *Formations.flyer_trio_left(y += 8),
+      *Formations.copter_two_shot(y += 4),
     ]
     return y, s
   end

@@ -161,6 +161,7 @@ class Game
 
       b.spr_frame = 3
       b.active = false
+      b.flash = 0
       
       b.sx = b.x
       b.sy = b.y
@@ -185,20 +186,26 @@ class Game
     my.current_music&.paused = my.pause
     audio[:alarm]&.paused = my.pause
 
+
+    if my.current_music
+      my.current_music.gain = if (my.player_reset_timer || 0) > 0 ||
+                                 my.pause
+                                0.2
+                              else
+                                [my.current_music.gain + 0.01, 1].min
+                              end
+    end
+
     return if my.pause
     
     if my.phase == :level
       audio[:music] ||= { input: "sounds/kir-snes.ogg", looping: true, gain: 0.1 }
       my.current_music = audio[:music]
       
-      audio[:music].gain = if (my.player_reset_timer || 0) > 0 || my.pause
-                             0.2
-                           else
-                             [audio[:music].gain + 0.01, 1].min
-                           end
+      
     elsif audio[:music] && audio[:music].gain > 0 ## transition
       
-      audio[:music].gain -= 0.003
+      audio[:music].gain -= 0.015
       
     elsif my.phase == :victory
       
@@ -247,7 +254,7 @@ class Game
       # around it like I do for everything else but oh well!
       hitbox = {x: p.x + 7, y: p.y + 7, w: 2, h: 2}.quantize!
       
-      obstacles = (my.aeb + my.grunts).map do |t|
+      obstacles = (my.aeb + my.grunts + (my.boss || [])).map do |t|
         t.quantize.merge!(og: t)
       end
       
