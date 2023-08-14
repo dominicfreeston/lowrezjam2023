@@ -16,6 +16,14 @@ class Game
     my.tick_count ||= 0    
     setup unless my.setup
 
+    my.phase ||= :level
+    my.phase = :transition if my.phase == :level && my.grunts.empty?
+    my.phase = :victory if my.phase == :boss &&
+                           my.boss&.empty? &&
+                           my.explosion_queue&.empty?
+    
+    setup_boss if my.phase == :boss
+
     update_level_music
 
     if !my.pause
@@ -23,6 +31,7 @@ class Game
       update_bullets
       update_player
       update_grunts
+      update_boss
       update_explosions
     end
     
@@ -44,8 +53,20 @@ class Game
         anchor_y: 0.5,
       }.merge!(COLOR2).solid!
     end if my.pause
+
+    if my.phase == :victory
+      $outro.my.won = true
+      $current_scene = $outro
+    end
   end
 
+
+  def reset_player
+    my.score = 0
+    my.lives = 3
+    my.bombs = 3
+    reset_help_location
+  end
   
   def setup
     my.player = {x: FLY_RANGE_W / 2 - 8,
@@ -53,14 +74,10 @@ class Game
                  w: 16, h: 16,
                  speed: 0}
 
-    my.score = 0
-    my.lives = 3
-    my.bombs = 3
-    
     my.help1 = {w: 8, h: 8}
     my.help2 = {w: 8, h: 8}
 
-    reset_help_location
+    reset_player
 
     my.explosions = []
     my.apb = [] # active player bullets
@@ -72,25 +89,87 @@ class Game
 
     y = 0
     
-     y, s = Sequences.part_1(y)
-     my.grunts += s
+    y, s = Sequences.part_1(y)
+    my.grunts += s
 
-    # y, s = Sequences.part_2(y + 2)
-    # my.grunts += s
+    y, s = Sequences.part_2(y + 2)
+    my.grunts += s
 
-    # y, s = Sequences.part_3(y + 4)
-    # my.grunts += s
+    y, s = Sequences.part_3(y + 4)
+    my.grunts += s
 
-    # y, s = Sequences.part_4(y + 4)
-    # my.grunts += s
+    y, s = Sequences.part_4(y + 4)
+    my.grunts += s
 
-    # y, s = Sequences.part_5(y + 4)
-    # my.grunts += s
-    
+    y, s = Sequences.part_5(y + 4)
+    my.grunts += s
+        
     my.setup = true
     
   end
 
+  def setup_boss
+    my.boss ||= (
+      [
+        {
+          x: 15, y: 2, w: 6, h: 6, health: 150,
+          name: "left_side", score: 20,
+          spr: SPRITES.boss_left_eye_close,
+          spr_flash: SPRITES.boss_left_eye_flash,
+          spr_hurt: SPRITES.boss_left_eye_hurt,
+          back_spr: SPRITES.boss_left,
+          moves: Moves.boss_slide_down_last,
+        },
+        {
+          x: 35, y: 2, w: 6, h: 6, health: 200,
+          name: "center_left", score: 30,
+          spr: SPRITES.boss_center_left_eye_close,
+          spr_flash: SPRITES.boss_center_left_eye_flash,
+          spr_hurt: SPRITES.boss_center_left_eye_hurt,
+          back_spr: SPRITES.boss_center_left,
+          moves: Moves.boss_slide_down_next,
+        },
+        {
+          x: 45, y: 6, w: 6, h: 6, health: 250,
+          name: "center", score: 50,
+          spr: SPRITES.boss_center_eye_close,
+          spr_flash: SPRITES.boss_center_eye_flash,
+          spr_hurt: SPRITES.boss_center_eye_hurt,
+          back_spr: SPRITES.boss_center,
+          moves: Moves.boss_slide_down_first,
+        },
+        {
+          x: 56, y: 2, w: 6, h: 6, health: 200,
+          name: "center_right", score: 30,
+          spr: SPRITES.boss_center_right_eye_close,
+          spr_flash: SPRITES.boss_center_right_eye_flash,
+          spr_hurt: SPRITES.boss_center_right_eye_hurt,
+          back_spr: SPRITES.boss_center_right,
+          moves: Moves.boss_slide_down_next,
+        },
+        {
+          x: 74, y: 2, w: 6, h: 6, health: 150,
+          name: "right_side", score: 20,
+          spr: SPRITES.boss_right_eye_close,
+          spr_flash: SPRITES.boss_right_eye_flash,
+          spr_hurt: SPRITES.boss_right_eye_hurt,
+          back_spr: SPRITES.boss_right,
+          moves: Moves.boss_slide_down_last,
+        },
+      ]
+    ).map do |b|
+
+      b.spr_frame = 3
+      b.active = false
+      
+      b.sx = b.x
+      b.sy = b.y
+
+      b.y += my.player.w_y + 64
+      
+      b
+    end
+  end
   
   def reset_help_location
     
@@ -103,33 +182,55 @@ class Game
 
   
   def update_level_music
-    if my.grunts.length > 0
+    my.current_music&.paused = my.pause
+    audio[:alarm]&.paused = my.pause
+
+    return if my.pause
+    
+    if my.phase == :level
       audio[:music] ||= { input: "sounds/kir-snes.ogg", looping: true, gain: 0.1 }
-      audio[:music].paused = my.pause    
+      my.current_music = audio[:music]
+      
       audio[:music].gain = if (my.player_reset_timer || 0) > 0 || my.pause
                              0.2
                            else
                              [audio[:music].gain + 0.01, 1].min
                            end
-    elsif audio[:music] && audio[:music].gain > 0
-      audio[:music].gain -= 0.002
-    else 
+    elsif audio[:music] && audio[:music].gain > 0 ## transition
+      
+      audio[:music].gain -= 0.003
+      
+    elsif my.phase == :victory
+      
+      audio[:boss_music] = nil
+      my.current_music = nil
+      audio[:victory_music] ||= { input: "sounds/victory.wav", looping: false }
+      
+    else
+      my.phase = :boss
+      
       audio[:music] = nil
 
-      audio[:alarm] ||= { input: "sounds/alarm.wav", looping: true, gain: 0.5} if !my.alarm_playcount
+      audio[:alarm] ||= {
+        input: "sounds/alarm.wav",
+        looping: true, gain: 0.5
+      } if !my.alarm_playcount
+      
       my.alarm_playcount ||= 0
       my.alarm_playtime ||= 0
+      
       if audio[:alarm]
-        audio[:alarm].paused = my.pause
+
         playtime = (audio[:alarm][:playtime] || 0)
         my.alarm_playcount += 1 if playtime < my.alarm_playtime
         my.alarm_playtime = playtime
         audio[:alarm].looping = false if my.alarm_playcount >= 3
         audio[:alarm].gain -= 0.002 if not audio[:alarm].looping
+        
       end      
 
-      audio[:boss_music].paused = my.pause
       audio[:boss_music] ||= { input: "sounds/boss.ogg", looping: true, gain: 0.0 }
+      my.current_music = audio[:boss_music]
       audio[:boss_music].gain = [audio[:boss_music].gain + 0.002, 1].min
     end
   end
@@ -272,7 +373,7 @@ class Game
   def trigger_bomb 
     audio[:bomb1] = {input:"sounds/bomb.wav"}    
     audio[:bomb2] = {input: "sounds/bomb-2.wav"} 
-    audio[:music].gain = 0.1
+    my.current_music.gain = 0.1
 
     my.bombs -= 1
     my.bomb_ticks = BOMB_LENGTH
@@ -309,8 +410,51 @@ class Game
       destroy_grunt g if g.health <= 0
       
     end
+
+    my.boss&.reverse_each do |g|
+      
+      next unless g.active
+      
+      g.health -= 1
+      g.flash = 1
+
+      # rely on main boss update to handle death
+      
+    end
+  end
+  
+  def apply_shoot g
+    while (move = g.moves&.first) && (gun = move&.shoot)
+      bullet = gun.dup
+      bullet.x += g.x.floor
+      bullet.y += g.y.floor
+      
+      # aimed bullets
+      if v = bullet.vel
+        t = {
+          x: (my.player.x + my.player.w / 2).floor,
+          y: (my.player.y + my.player.h / 2).floor,
+        } 
+        a = bullet.angle_to t
+        bullet.vx = a.vector_x * v
+        bullet.vy = a.vector_y * v
+      end
+      
+      # Add a fire animation if present
+      add_explosion g.merge(exp: move.exp) if move.exp
+      
+      my.aeb << bullet
+      g.bullets << bullet if g.bullets
+      g.moves.shift
+
+      g.moves = nil if g.moves.empty?
+    end
   end
 
+  def apply_moves g
+    g.y += SHIP_BASE_SPEED
+    Moves.apply_next_move g
+  end
   
   def update_grunts
     
@@ -321,40 +465,11 @@ class Game
       next unless g.active
 
       # shoot all bullets
-      while (move = g.moves&.first) && (gun = move&.shoot)
-        bullet = gun.dup
-        bullet.x += g.x.floor
-        bullet.y += g.y.floor
-
-        # aimed bullets
-        if v = bullet.vel
-          t = {
-            x: (my.player.x + my.player.w / 2).floor,
-            y: (my.player.y + my.player.h / 2).floor,
-          } 
-          a = bullet.angle_to t
-          bullet.vx = a.vector_x * v
-          bullet.vy = a.vector_y * v
-        end
-
-        # Add a fire animation if present
-        add_explosion g.merge(exp: move.exp) if move.exp
-        
-        my.aeb << bullet
-        g.bullets << bullet
-        g.moves.shift
-      end
-
-      g.y += SHIP_BASE_SPEED
-      if move = g.moves&.first
-        g.x += (move.dx || 0)
-        g.y += (move.dy || 0)
-        g.angle = (g.angle || 0) + move.rot if move.rot
-        move.ticks -= 1
-        g.moves.shift unless move.ticks > 0
-       
-        my.grunts.delete g if g.moves.empty?
-      end
+      apply_shoot g
+      
+      # move
+      apply_moves g
+      my.grunts.delete g if !g.moves
 
       # Get shot?
       bullets = my.apb.map { |b| b.quantize.merge!(og: b) }
@@ -446,6 +561,120 @@ class Game
                       moves: g.moves&.map { |m| m.dup }}
   end
 
+
+  def update_boss
+    return unless my.boss
+    my.boss_start ||= my.tick_count
+    
+    my.boss_end ||= 400
+    t = my.boss_end
+    if my.tick_count > my.boss_start + t
+      my.boss_sequence = nil
+    end
+    
+     my.boss_sequence ||= [
+      [t += 60, :center_copter],
+      [t += 40, :middle_barrage],
+      [t += 40, :side_homing],
+      [t += 60, :side_homing],
+      [t += 40, :close_center],
+      [t += 20, :center_copter],
+      [t += 20, :center_copter],
+      [t += 40, :center_copter],
+      [t += 20, :center_copter],
+      [t += 40, :close_center_cluster],
+      [t += 40, :side_barrage],
+      [t += 20, :side_barrage],
+      [t += 60, :side_barrage],
+      [t += 0, :open_center_cluster],
+    ]
+    my.boss_end = t
+
+    # can move elsewhere?
+    my.explosion_queue ||= []
+    my.explosion_queue.reverse_each do |e|
+      e.y += SHIP_BASE_SPEED
+      e.delay -= 1
+
+      if e.delay <= 0
+        add_explosion e
+        my.explosion_queue.delete e
+      end
+    end
+
+
+    my.boss_sequence.each do |pattern|
+      t, s = pattern
+      if my.tick_count == my.boss_start + t
+        BossPatterns.send s, my.boss        
+      end
+    end
+
+    my.boss.reverse_each do |g|
+      g.flash ||= 0
+      g.flash -= 1 if g.flash
+      
+      g.moves ||= Moves.boss_head_move
+
+      apply_shoot g
+      # g.sy += SHIP_BASE_SPEED
+      apply_moves g
+      
+      bullets = my.apb.map { |b| b.quantize.merge!(og: b) }
+      collisions = $geometry.find_all_intersect_rect g, bullets
+      
+      if g.active && !collisions.empty?
+        g.health -= collisions.length
+        g.flash = 2
+      end
+    
+      # Get killed?
+      if g.health < 0
+        my.boss.delete g
+        outputs.sounds << "sounds/explosion.wav"
+        add_explosion g.merge(exp: SPRITES.explosion_02)
+
+        my.explosion_queue += [
+          g.merge(x: g.x - 4, delay: 15 + (rand * 60).to_i),
+          g.merge(x: g.x + 4, delay: 15 + (rand * 60).to_i),
+          g.merge(x: g.y - 4, delay: 15 + (rand * 60).to_i),
+          g.merge(x: g.y + 4, delay: 15 + (rand * 60).to_i)
+        ]
+
+        my.score += g.score
+      end
+
+      my.apb = my.apb.difference collisions.map { |c| c.og }
+    end
+
+  end
+
+  
+  def boss_sprites
+    return nil unless my.boss
+    
+    [
+      my.boss.map do |b|
+        b.back_spr
+           .merge(
+             x: 0,
+             y: (b.y - b.sy).floor
+           )
+           .translate!(my.camera) if b.back_spr
+      end,
+
+      my.boss.map do |b|
+        main_spr = (b.health >= 30 ? b.spr : b.spr_hurt)
+
+        (b.flash > 0 ? b.spr_flash : main_spr[b.spr_frame])
+          .merge(
+            x: (b.x - b.sx).floor,
+            y: (b.y - b.sy).floor,
+          )
+          .translate!(my.camera)
+      end,
+    ]
+  end
   
   def render_screen
     
@@ -501,6 +730,8 @@ class Game
           ]
         end,
 
+        boss_sprites,
+        
         my.apb.map { |b| to_render(b, SPRITES.bullet_player) },
         my.aeb.map { |b| to_render(b) },
         
@@ -508,6 +739,7 @@ class Game
         
         my.grunts.filter_map { |e| to_render(e) if e.active },
         
+        # my.boss&.map { |b| to_debug(b) },
       ])
   end
 
@@ -628,6 +860,7 @@ def tick args
   
   $current_scene.tick
 end
+
 
 def reset
   $current_scene = $intro

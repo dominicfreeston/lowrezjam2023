@@ -1,6 +1,23 @@
 # Moves are sequences of simple steps
 # - Shoot moves don't consume a tick
 module Moves
+  def self.apply_next_move g
+    # move
+    if move = g.moves&.first
+      g.x += (move.dx || 0)
+      g.y += (move.dy || 0)
+      g.angle = (g.angle || 0) + move.rot if move.rot
+      g.active = move.active if move.active != nil
+      g.spr_frame = move.spr_frame if move.spr_frame
+
+      move.ticks ||= 0
+      move.ticks -= 1
+      g.moves.shift unless move.ticks > 0
+
+      g.moves = nil if g.moves.empty?
+    end
+  end
+  
   def self.repeat_shoot gun, times, gap
     (0..times).map do |i|
       r = gun.map { |g| {shoot: g} }
@@ -83,7 +100,145 @@ module Moves
       {dy: 0.8, ticks: 30},
     ]
   end
+
+
+  def self.boss_open_eye
+    [
+      { spr_frame: 3, ticks: 6 },
+      { spr_frame: 2, ticks: 6 },
+      { spr_frame: 1, ticks: 6 },
+      { spr_frame: 0, ticks: 6, active: true},
+    ]
+  end
+
+  def self.boss_close_eye
+    [
+      { spr_frame: 0, ticks: 6, active: false},
+      { spr_frame: 1, ticks: 6 },
+      { spr_frame: 2, ticks: 6 },
+      { spr_frame: 3, ticks: 6 },
+    ]
+  end
   
+  def self.boss_slide_down_first
+    [
+      {ticks: 220},
+      {dy: -0.25, ticks: 56},
+      {ticks: 60},
+      *boss_open_eye,
+    ]
+  end
+
+  def self.boss_slide_down_next
+    [
+      {ticks: 220},
+      {dy: -0.25, ticks: 56},
+      {ticks: 80 + (rand * 60).to_i},
+      *boss_open_eye,
+    ]
+  end
+
+  def self.boss_slide_down_last
+    [
+      {ticks: 360},
+      {dy: -0.25, ticks: 56},
+      {ticks: 30 + (rand * 40).to_i},
+      *boss_open_eye,
+    ]
+  end
+  
+  def self.boss_head_move
+    xdir = rand < 0.5 ? -1 : 1
+    ydir = rand < 0.5 ? -1 : 1
+    [
+      {ticks: 20 + (rand * 50).to_i},
+      {dx: xdir * 0.04,
+       dy: ydir * 0.01,
+       ticks: 50},
+      {ticks: 20 + (rand * 50).to_i},
+      {dx: xdir * -0.04,
+       dy: ydir * -0.01,
+       ticks: 50},
+    ]
+  end
+
+  def self.boss_middle_barrage
+    repeat_shoot Guns.bomber_gun, 10, 10
+  end
+end
+
+module BossPatterns
+  def self.middle_barrage boss
+    boss.each do |b|
+      if b.name.include?("center") && b.active
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Moves.boss_middle_barrage
+      end
+    end
+  end
+
+  def self.side_barrage boss
+    boss.each do |b|
+      if b.name.include?("side") && b.active
+        
+        Moves.apply_next_move b while b.moves
+        dir = b.name.include?("left") ? 1 : -1
+        b.moves = Guns.boss_side_gun(dir).map { |g| {shoot: g} }
+      end
+    end
+  end
+
+  def self.close_center boss
+    boss.each do |b|
+      if b.name == "center" && b.active
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Moves.boss_close_eye
+      end
+    end
+  end
+
+  def self.close_center_cluster boss
+    boss.each do |b|
+      if b.name.include?("center") && b.active
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Moves.boss_close_eye
+      end
+    end
+  end
+
+  def self.open_center_cluster boss
+     boss.each do |b|
+      if b.name.include?("center") && !b.active
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Moves.boss_open_eye
+      end
+    end
+  end
+
+  def self.side_homing boss
+    boss.each do |b|
+      if b.name.include?("side") && b.active
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Guns.gunner_gun.map { |g| {shoot: g} }
+      end
+    end
+  end
+
+  def self.center_copter boss
+    boss.each do |b|
+      if b.active &&
+         b.name.include?("center")
+        
+        Moves.apply_next_move b while b.moves
+        b.moves = Guns.copter_gun.map { |g| {shoot: g} }
+      end
+    end
+  end
 end
 
 # Guns are one-shot bullet patterns
@@ -150,6 +305,41 @@ module Guns
         x: 0, y: 2, w: 1, h: 1,
         vx: -0.25, vy: -0.25,
         flip_horizontally: true,
+        spr: SPRITES.bullet_enemy_angle,
+      },
+    ]
+  end
+
+  def self.boss_side_gun dir
+    [
+      {
+        x: 2, y: 1, w: 1, h: 1,
+        vx: 0, vy: -0.5,
+        flip_horizontally: dir < 0,
+        spr: SPRITES.bullet_enemy_small,
+      },
+      {
+        x: 2, y: 1, w: 1, h: 1,
+        vx: dir * 0.1, vy: -0.5,
+        flip_horizontally: dir < 0,
+        spr: SPRITES.bullet_enemy_small,
+      },
+      {
+        x: 2, y: 1, w: 1, h: 1,
+        vx: dir * 0.2, vy: -0.5,
+        flip_horizontally: dir < 0,
+        spr: SPRITES.bullet_enemy_small,
+      },
+      {
+        x: 2, y: 2, w: 1, h: 1,
+        vx: dir * 0.2, vy: -0.25,
+        flip_horizontally: dir < 0,
+        spr: SPRITES.bullet_enemy_angle,
+      },
+      {
+        x: 2, y: 2, w: 1, h: 1,
+        vx: dir * 0.3, vy: -0.25,
+        flip_horizontally: dir < 0,
         spr: SPRITES.bullet_enemy_angle,
       },
     ]
@@ -511,7 +701,7 @@ module Sequences
       *Formations.diver_rush(y += 8),
       *Formations.diver_rush(y += 1),
       *Formations.diver_rush(y += 1),
-      *Formations.copter_descent(y += 2),
+      *Formations.copter_descent(y += 8),
       *Sequences.fighter_swarm(y += 0),
       *Formations.diver_rush(y += 2),
       *Formations.diver_rush(y += 1),

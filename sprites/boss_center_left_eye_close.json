@@ -1,0 +1,47 @@
+{ "frames": [
+   {
+    "filename": "some-kind-of-boss-closed 0.aseprite",
+    "frame": { "x": 0, "y": 0, "w": 96, "h": 16 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 16 },
+    "sourceSize": { "w": 96, "h": 16 },
+    "duration": 100
+   },
+   {
+    "filename": "some-kind-of-boss-closed 1.aseprite",
+    "frame": { "x": 96, "y": 0, "w": 96, "h": 16 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 16 },
+    "sourceSize": { "w": 96, "h": 16 },
+    "duration": 100
+   },
+   {
+    "filename": "some-kind-of-boss-closed 2.aseprite",
+    "frame": { "x": 192, "y": 0, "w": 96, "h": 16 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 16 },
+    "sourceSize": { "w": 96, "h": 16 },
+    "duration": 100
+   },
+   {
+    "filename": "some-kind-of-boss-closed 3.aseprite",
+    "frame": { "x": 288, "y": 0, "w": 96, "h": 16 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 96, "h": 16 },
+    "sourceSize": { "w": 96, "h": 16 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.40-x64",
+  "image": "boss_center_left_eye_close.png",
+  "format": "RGBA8888",
+  "size": { "w": 384, "h": 16 },
+  "scale": "1"
+ }
+}

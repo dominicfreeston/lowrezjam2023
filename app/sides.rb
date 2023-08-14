@@ -70,7 +70,7 @@ end
 
 class Outro
   attr_gtk
-
+  
   def tick
     my.phase ||= :slide_in
     my.phase_start_time ||= args.tick_count
@@ -91,7 +91,7 @@ class Outro
 
       if progress == 0
         my.phase = :slide_out
-        my.phase_start_time = nil
+        my.phase_start_time = args.tick_count
       end
 
     when :slide_out
@@ -106,7 +106,7 @@ class Outro
 
       if progress == 1
         my.phase = :show_score
-        my.phase_start_time = nil
+        my.phase_start_time = args.tick_count
       end
 
     when :show_score
@@ -114,14 +114,20 @@ class Outro
       score_offset = 12
 
       fi = my.phase_start_time
-             .frame_index 4, 20, true
+             .frame_index 12, 20, true
+    end
+
+    if my.won
+      lines = ["YOU", "WON!"]
+    else
+      lines = ["GAME", "OVER"]
     end
     
     args.lowrez.primitives << [
       SPRITES.background,
       {
         x: 32 - x_offset, y: 64 - 16 + y_offset,
-        text: "GAME",
+        text: lines[0],
         font: LOWREZ_FONT_PATH,
         alignment_enum: 1,
         vertical_alignment_enum: 2,
@@ -129,7 +135,7 @@ class Outro
       }.merge!(COLOR3),
       {
         x: 32 + x_offset, y: 16 - y_offset,
-        text: "OVER",
+        text: lines[1],
         font: LOWREZ_FONT_PATH,
         alignment_enum: 1,
         vertical_alignment_enum: 0,
@@ -157,32 +163,83 @@ class Outro
            }.merge!(COLOR3),
          ]
       end,
-      if fi != 0
+      if fi % 6 != 0 && !my.won
+        if fi < 6
+          lines = ["shoot to", "start again"]
+        else
+          lines = ["bomb to", "continue"]
+        end
         [
-         {
+          {
             x: 32, y: 16,
-            text: "shoot to",
+            text: lines[0],
             font: LOWREZ_FONT_PATH,
             alignment_enum: 1,
             vertical_alignment_enum: 0,
             size_enum: LOWREZ_FONT_SM
           }.merge!(COLOR3),
-         {
+          {
             x: 32, y: 14,
-            text: "start again",
+            text: lines[1],
             font: LOWREZ_FONT_PATH,
             alignment_enum: 1,
             vertical_alignment_enum: 2,
             size_enum: LOWREZ_FONT_SM
           }.merge!(COLOR3),
         ]
-      end
+      end,
+      if my.won && my.phase == :show_score
+        [
+          {
+            x: 32, y: 26,
+            text: "thanks to",
+            font: LOWREZ_FONT_PATH,
+            alignment_enum: 1,
+            size_enum: LOWREZ_FONT_SM
+          }.merge!(COLOR3),
+          {
+            x: 32, y: 20,
+            text: "you the world",
+            font: LOWREZ_FONT_PATH,
+            alignment_enum: 1,
+            size_enum: LOWREZ_FONT_SM
+          }.merge!(COLOR3),
+          {
+            x: 32, y: 14,
+            text: "is now safe",
+            font: LOWREZ_FONT_PATH,
+            alignment_enum: 1,
+            size_enum: LOWREZ_FONT_SM
+          }.merge!(COLOR3),
+        ]
+      end,
     ]
+
+    if my.won &&
+       my.phase == :show_score &&
+       $input.shoot_now?
+
+      reset_me
+      $intro.reset_me
+      $game.reset_me
+      $current_scene = $intro
+
+      return
+    end
+    
+    return if my.won
 
     if $input.shoot_now?
       audio[:music] = nil
       reset_me
       $game.reset_me
+      $current_scene = $game
+    end
+    
+    if $input.bomb_now? and !my.won
+      reset_me
+      $game.trigger_bomb
+      $game.reset_player
       $current_scene = $game
     end
   end
