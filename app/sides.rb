@@ -10,7 +10,7 @@ class Intro
     
     case my.phase
     when :start
-      audio[:victory] ||= { input: "sounds/victory.wav", looping: false,}
+      audio[:victory] ||= { input: "sounds/victory.wav", looping: false,} if $music_enabled
       sprite = SPRITES.logo_take_2
       fi = my.phase_start_time
              .frame_index sprite.count, sprite.first.duration, true

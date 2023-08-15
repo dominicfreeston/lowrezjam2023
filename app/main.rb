@@ -6,6 +6,8 @@ require 'app/enemies.rb'
 require 'app/debug.rb'
 require 'app/sides.rb'
 
+$music_enabled = !$gtk.platform?(:web)
+
 class Game
   attr_gtk
   
@@ -183,6 +185,8 @@ class Game
 
   
   def update_level_music
+    return unless $music_enabled
+    
     my.current_music&.paused = my.pause
     audio[:alarm]&.paused = my.pause
 
@@ -262,7 +266,7 @@ class Game
 
       unless collisions.empty? || @invincible
 
-        outputs.sounds << "sounds/death.wav"
+        outputs.sounds << "sounds/death.wav" if $music_enabled
         
         my.lives -= 1
         my.player_reset_timer = PLAYER_RESET_TIME
@@ -325,7 +329,7 @@ class Game
        my.tick_count > (p.last_shot || 0) + BULLET_GAP
 
 
-      if (my.bomb_ticks || 0) <= 0
+      if (my.bomb_ticks || 0) <= 0 && $music_enabled
         audio[:shoot] = { input: "sounds/shoot.wav", looping: false, gain: 0.5}
       end
       
@@ -377,9 +381,11 @@ class Game
   end
 
   
-  def trigger_bomb 
-    audio[:bomb1] = {input:"sounds/bomb.wav"}    
-    audio[:bomb2] = {input: "sounds/bomb-2.wav"} 
+  def trigger_bomb
+    if $music_enabled
+      audio[:bomb1] = {input:"sounds/bomb.wav"}    
+      audio[:bomb2] = {input: "sounds/bomb-2.wav"}
+    end
     my.current_music.gain = 0.1
 
     my.bombs -= 1
@@ -497,7 +503,7 @@ class Game
   
   def destroy_grunt g
 
-    outputs.sounds << "sounds/explosion.wav"
+    outputs.sounds << "sounds/explosion.wav" if $music_enabled
     
     my.grunts.delete g
     my.aeb = my.aeb.difference g.bullets if g.bullets
@@ -638,7 +644,7 @@ class Game
       # Get killed?
       if g.health < 0
         my.boss.delete g
-        outputs.sounds << "sounds/explosion.wav"
+        outputs.sounds << "sounds/explosion.wav" if $music_enabled
         add_explosion g.merge(exp: SPRITES.explosion_02)
 
         my.explosion_queue += [
