@@ -29,4 +29,11 @@ module GTK
       (self.up || 0) <=> (self.down || 0)
     end
   end
+
+  # Disable DR console in published builds
+  if $gtk.production?
+    class Console
+      def toggle; end
+    end
+  end
 end
