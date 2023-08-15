@@ -19,10 +19,13 @@ class Game
     setup unless my.setup
 
     my.phase ||= :level
-    my.phase = :transition if my.phase == :level && my.grunts.empty?
     my.phase = :victory if my.phase == :boss &&
                            my.boss&.empty? &&
                            my.explosion_queue&.empty?
+
+    if my.phase == :level && my.grunts.empty?
+      my.phase = $music_enabled ? :transition : :boss
+    end
     
     setup_boss if my.phase == :boss
 
